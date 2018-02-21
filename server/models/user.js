@@ -19,7 +19,7 @@ const UserSchema = new mongoose.Schema({
   password: {
     type: String,
     required: true,
-    minlength: 5
+    minlength: 6
   },
   tokens: [
     {
@@ -82,6 +82,15 @@ UserSchema.statics.findByCredentials = function(email, password) {
     });
   });
 };
+
+UserSchema.methods.removeToken = function(token) {
+  let user = this;
+  return user.update({
+    $pull: {
+      tokens: {token}
+    }
+  });
+}
 
 const User = mongoose.model('User', UserSchema);
 

@@ -7,9 +7,9 @@ import {Provider} from 'react-redux';
 import configureStore from './store/configureStore';
 import AppRouter, {history} from './router/AppRouter';
 import LoadingPage from './pages/LoadingPage';
+import {login} from './actions/auth';
 
 const store = configureStore();
-
 
 const jsx = (
   <Provider store={store}>
@@ -30,6 +30,12 @@ ReactDOM.render(<LoadingPage/>,
   document.getElementById('app')
 );
 
-// setTimeout(() => {
-//   renderApp();
-// }, 1500);
+const user = JSON.parse(localStorage.getItem('user'));
+
+if(user) {
+  store.dispatch(login(user._id, user.token));  
+  renderApp();
+}
+
+
+

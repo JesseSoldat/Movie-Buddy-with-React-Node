@@ -2717,3 +2717,18 @@ template {
   margin: 0;
   overflow: visible;
   clip: auto; }
+
+body {
+  margin-top: 70px; }
+
+.login__well {
+  margin-top: 30px; }
+
+.login__title {
+  margin-bottom: 25px; }
+
+.authform__error {
+  color: red;
+  font-weight: 300;
+  padding-top: 10px;
+  display: block; }
