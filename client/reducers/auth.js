@@ -10,6 +10,20 @@ export default (state = initialState, action) => {
         token: action.token
       };
 
+    case "REGISTER":
+      return {
+        ...state,
+        _id: action._id,
+        token: action.token
+      };
+    
+    case "LOGOUT":
+      return {
+        ...state,
+        _id: null,
+        token: null
+      };
+
     default:
       return state;
   }

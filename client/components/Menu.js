@@ -35,9 +35,16 @@ class Menu extends Component {
     }
     return (
       <Nav pullRight>
-        <Link to="/login" className="header__link">
-          <NavItem eventKey={1}>Login</NavItem>
-        </Link>
+        <LinkContainer to="/login">
+          <NavItem eventKey={1}>
+            Login
+          </NavItem>
+        </LinkContainer>
+        <LinkContainer to="/register">
+          <NavItem eventKey={2}>
+            Register
+          </NavItem>
+        </LinkContainer>
       </Nav>
     );
   }

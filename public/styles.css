@@ -2721,10 +2721,10 @@ template {
 body {
   margin-top: 70px; }
 
-.login__well {
+.auth__well {
   margin-top: 30px; }
 
-.login__title {
+.auth__title {
   margin-bottom: 25px; }
 
 .authform__error {

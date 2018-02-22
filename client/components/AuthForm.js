@@ -1,7 +1,7 @@
 import React, {Component} from 'react';
 import {FormGroup, ControlLabel, FormControl, Button} from 'react-bootstrap';
 import {connect} from 'react-redux';
-import {startLogin} from '../actions/auth';
+import {startLogin, startRegister} from '../actions/auth';
 
 class AuthForm extends Component {
   state = {
@@ -33,7 +33,15 @@ class AuthForm extends Component {
       return;
     }
 
-    this.props.startLogin(this.state.email, this.state.password);
+    if(this.props.formType === 'login') {
+      this.props.startLogin(this.state.email, this.state.password);
+    }
+    
+    if(this.props.formType === 'register') {
+      console.log('REGISTER a user');
+      
+      this.props.startRegister(this.state.email, this.state.password);
+    }
 
   }
 
@@ -96,8 +104,13 @@ class AuthForm extends Component {
   }
 }
 
-const mapDispatchToProps = (dispatch) => ({
-  startLogin: (email, password) => dispatch(startLogin(email, password))
+const mapStateToProps = (state, ownProps) => ({
+  formType: ownProps.formType
 });
 
-export default connect(undefined, mapDispatchToProps)(AuthForm);
+const mapDispatchToProps = (dispatch) => ({
+  startLogin: (email, password) => dispatch(startLogin(email, password)),
+  startRegister: (email, password) => dispatch(startRegister(email, password))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(AuthForm);
