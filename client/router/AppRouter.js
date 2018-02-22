@@ -8,7 +8,7 @@ import LoginPage from '../pages/LoginPage';
 import RegisterPage from '../pages/RegisterPage';
 import LogoutPage from '../pages/LogoutPage';
 import DashboardPage from '../pages/DashboardPage';
-
+import SearchMoviesPage from '../pages/SearchMoviesPage';
 
 export const history = createHistory();
 
@@ -24,6 +24,7 @@ const AppRouter = () => (
         <PublicRoute path="/register" component={RegisterPage} />
         <PrivateRoute path="/logout" component={LogoutPage} />
         <PrivateRoute path="/dashboard" component={DashboardPage} />
+        <PrivateRoute path="/search" component={SearchMoviesPage} />
       </Switch>
     </div>
   </Router>

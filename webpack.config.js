@@ -1,5 +1,13 @@
 const path = require('path');
 const ExtractTextPlugin = require('extract-text-webpack-plugin');
+const dotenv = require('dotenv');
+const webpack = require('webpack');
+
+process.env.NODE_ENV = process.env.NODE_ENV || 'development';
+
+if(process.env.NODE_ENV === 'development') {
+  dotenv.config({path: '.env.development'});
+}
 
 module.exports = () => {
   const CSSExtract = new ExtractTextPlugin('styles.css');
@@ -47,7 +55,10 @@ module.exports = () => {
       ]
     },
     plugins: [
-      CSSExtract
+      CSSExtract,
+      new webpack.DefinePlugin({
+        'process.env.MOVIE_API': JSON.stringify(process.env.MOVIE_API)
+      })
     ]
   }
 }

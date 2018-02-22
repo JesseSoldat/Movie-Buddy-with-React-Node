@@ -38,8 +38,6 @@ class AuthForm extends Component {
     }
     
     if(this.props.formType === 'register') {
-      console.log('REGISTER a user');
-      
       this.props.startRegister(this.state.email, this.state.password);
     }
 
