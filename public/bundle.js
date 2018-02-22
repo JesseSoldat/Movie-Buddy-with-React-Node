@@ -60395,6 +60395,10 @@ var _SearchBox = __webpack_require__(907);
 
 var _SearchBox2 = _interopRequireDefault(_SearchBox);
 
+var _Card = __webpack_require__(924);
+
+var _Card2 = _interopRequireDefault(_Card);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -60416,20 +60420,33 @@ var SearchMoviesPage = function (_Component) {
     key: 'render',
     value: function render() {
       return _react2.default.createElement(
-        _reactBootstrap.Grid,
+        'span',
         null,
         _react2.default.createElement(
-          _reactBootstrap.Row,
+          _reactBootstrap.Grid,
           null,
           _react2.default.createElement(
-            _reactBootstrap.Col,
-            { xs: 12, sm: 8, smOffset: 2 },
+            _reactBootstrap.Row,
+            null,
             _react2.default.createElement(
-              'h2',
-              null,
-              'Search'
-            ),
-            _react2.default.createElement(_SearchBox2.default, null)
+              _reactBootstrap.Col,
+              { xs: 12, sm: 8, smOffset: 2 },
+              _react2.default.createElement(
+                'h2',
+                null,
+                'Search'
+              ),
+              _react2.default.createElement(_SearchBox2.default, null)
+            )
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2.default.createElement(
+              _reactBootstrap.Col,
+              { xs: 12 },
+              _react2.default.createElement(_Card2.default, null)
+            )
           )
         )
       );
@@ -61480,6 +61497,104 @@ function plural(ms, n, name) {
   return Math.ceil(ms / n) + ' ' + name + 's';
 }
 
+
+/***/ }),
+/* 924 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRedux = __webpack_require__(66);
+
+var _reactBootstrap = __webpack_require__(83);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var Card = function (_Component) {
+  _inherits(Card, _Component);
+
+  function Card() {
+    var _ref;
+
+    var _temp, _this, _ret;
+
+    _classCallCheck(this, Card);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = Card.__proto__ || Object.getPrototypeOf(Card)).call.apply(_ref, [this].concat(args))), _this), _this.renderCard = function (_ref2) {
+      var title = _ref2.title,
+          poster_path = _ref2.poster_path,
+          id = _ref2.id;
+
+      return _react2.default.createElement(
+        _reactBootstrap.Col,
+        { key: id, xs: 10, sm: 4, md: 3, xsOffset: 1, smOffset: 0 },
+        _react2.default.createElement(
+          _reactBootstrap.Panel,
+          { className: 'search__panel' },
+          _react2.default.createElement(
+            _reactBootstrap.Panel.Heading,
+            { className: 'search__panel__heading' },
+            title
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Panel.Body,
+            { className: 'search__panel__body' },
+            _react2.default.createElement(_reactBootstrap.Image, { className: 'search__image',
+              src: 'http://image.tmdb.org/t/p/w500/' + poster_path,
+              thumbnail: true })
+          )
+        )
+      );
+    }, _temp), _possibleConstructorReturn(_this, _ret);
+  }
+
+  _createClass(Card, [{
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      return _react2.default.createElement(
+        'span',
+        null,
+        this.props.movies.map(function (movie) {
+          return _this2.renderCard(movie);
+        })
+      );
+    }
+  }]);
+
+  return Card;
+}(_react.Component);
+
+var mapStateToProps = function mapStateToProps(_ref3) {
+  var moviedb = _ref3.moviedb;
+  return {
+    movies: moviedb.movies
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps)(Card);
 
 /***/ })
 /******/ ]);
