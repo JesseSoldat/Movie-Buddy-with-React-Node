@@ -1,6 +1,7 @@
 import {createStore, combineReducers, applyMiddleware, compose} from 'redux';
 import thunk from 'redux-thunk';
 import authReducer from '../reducers/auth';
+import moviedbReducer from '../reducers/moviedb';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -9,7 +10,8 @@ export default () => {
     combineReducers({
       loading: () => ({}),
       auth: authReducer,
-      route: () => ({})
+      route: () => ({}),
+      moviedb: moviedbReducer
     }),
     composeEnhancers(applyMiddleware(thunk))
   );

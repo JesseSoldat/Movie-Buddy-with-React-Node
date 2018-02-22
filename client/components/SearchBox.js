@@ -1,6 +1,7 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
 import { FormGroup, FormControl } from 'react-bootstrap';
+import {startMoviesSearch} from '../actions/moviedb';
 
 class SearchBox extends Component {
   state = {
@@ -10,6 +11,7 @@ class SearchBox extends Component {
   onChange = (e) => {
     const text = e.target.value;
     this.setState(() => ({text}));
+    this.props.startMoviesSearch(text);
   }
 
   render() {
@@ -24,4 +26,8 @@ class SearchBox extends Component {
   }
 }
 
-export default connect(undefined)(SearchBox);
+const mapDispatchToProps = (dispatch) => ({
+  startMoviesSearch: (term) => dispatch(startMoviesSearch(term))
+});
+
+export default connect(undefined, mapDispatchToProps)(SearchBox);
