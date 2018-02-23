@@ -35,11 +35,15 @@ export const getDetails = (movie = {}) => ({
 export const startGetDetails = (id) => {
   return (dispatch) => {
     const url = `${baseUrl}movie/${id}?${apiKey}`;
+    console.log(url);
+    
     
     jsonp(url, null, (err, data) => {
       if(err) {
         return console.log(err.message);
       }
+      console.log(data);
+      
       dispatch(getDetails(data));
     });
   }

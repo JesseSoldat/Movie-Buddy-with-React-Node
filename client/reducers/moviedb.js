@@ -1,7 +1,7 @@
 const initialState = {
   term: '',
   movies: [],
-  details: {}
+  movie: {}
 };
 
 export default (state = initialState, action) => {
@@ -18,7 +18,7 @@ export default (state = initialState, action) => {
       console.log('GET_DETAILS', action.movie);
       return {
         ...state,
-        details: action.movie
+        movie: action.movie
       }
 
     default: 

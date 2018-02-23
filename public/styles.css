@@ -2733,8 +2733,15 @@ body {
   padding-top: 10px;
   display: block; }
 
+.searchbox {
+  margin-top: 10px; }
+
+.searchBox__label {
+  padding-top: 10px;
+  margin: 0; }
+
 .card {
-  height: 550px; }
+  height: 520px; }
 
 .card__panel {
   height: 500px; }
@@ -2750,10 +2757,13 @@ body {
   display: block;
   margin: 0 auto; }
 
-@media screen and (max-width: 400px) {
+@media screen and (max-width: 1220px) {
   .card_panel_buttons_large {
     display: none; } }
 
-@media screen and (min-width: 399px) {
+@media screen and (min-width: 1219px) {
   .card_panel_buttons_small {
     display: none; } }
+
+.icon__heart {
+  margin-right: 5px; }

@@ -52,6 +52,10 @@ app.delete('/users/token', (req, res) => {
   .catch(e => res.status(400).send(e));
 });
 
+app.get('/users/hello', (req, res) => {
+  res.send('hello');
+});
+
 
 app.listen(PORT, (err) => {
   if(err) return console.log(err);

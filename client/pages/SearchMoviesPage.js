@@ -6,7 +6,8 @@ import Card from '../components/Card';
 
 class SearchMoviesPage extends Component {
   renderCards = () => {
-    return this.props.movies.map(movie => <Card key={movie.id} movie={movie} />)
+    const from = this.props.route;
+    return this.props.movies.map(movie => <Card key={movie.id} movie={movie} from={from} />)
   }
 
   render() {
@@ -14,8 +15,7 @@ class SearchMoviesPage extends Component {
       <span>
       <Grid>
         <Row>
-          <Col xs={12} sm={8} smOffset={2}>
-            <h2>Search</h2>
+          <Col xs={12} sm={10} smOffset={1} >
             <SearchBox />
           </Col>
         </Row>
@@ -32,8 +32,9 @@ class SearchMoviesPage extends Component {
   }
 }
 
-const mapStateToProps = ({moviedb}) => ({
-  movies: moviedb.movies
+const mapStateToProps = ({moviedb}, ownProps) => ({
+  movies: moviedb.movies,
+  route: ownProps.match.path
 })
 
 export default connect(mapStateToProps)(SearchMoviesPage);

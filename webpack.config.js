@@ -24,7 +24,7 @@ module.exports = () => {
         {
           test: /\.js$/,
           exclude: /node_modules/,
-          loader: 'babel-loader'
+          loader: 'babel-loader',
         },
         { 
           test: /\.(woff2?|ttf|svg|eot)(\?v=\d+\.\d+\.\d+)?$/,
@@ -59,6 +59,20 @@ module.exports = () => {
       new webpack.DefinePlugin({
         'process.env.MOVIE_API': JSON.stringify(process.env.MOVIE_API)
       })
-    ]
+    ],
+    // devtool: 'inline-source-map',
+    // devServer: {
+    //   historyApiFallback: true,
+    //   port: 3000, // Defaults to 8080
+    //   publicPath: '/dist/',
+    //   contentBase: path.resolve(__dirname,'public'),
+    //   proxy: {
+    //     "/api/**": {
+    //       target: "http://localhost:3001/",
+    //       secure: false,
+    //       changeOrigin: true
+    //     }
+    //   }
+    // }
   }
 }

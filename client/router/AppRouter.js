@@ -9,10 +9,12 @@ import RegisterPage from '../pages/RegisterPage';
 import LogoutPage from '../pages/LogoutPage';
 import DashboardPage from '../pages/DashboardPage';
 import SearchMoviesPage from '../pages/SearchMoviesPage';
+import MovieDetailsPage from '../pages/MovieDetailsPage';
 
 export const history = createHistory();
 
 const Welcome = () => (<h1>Welcome</h1>);
+const NotFoundPage = () => (<h1>Not Found</h1>);
 
 
 const AppRouter = () => (
@@ -24,7 +26,9 @@ const AppRouter = () => (
         <PublicRoute path="/register" component={RegisterPage} />
         <PrivateRoute path="/logout" component={LogoutPage} />
         <PrivateRoute path="/dashboard" component={DashboardPage} />
-        <PrivateRoute path="/search" component={SearchMoviesPage} />
+        <PrivateRoute path="/search" component={SearchMoviesPage} exact />
+        <PrivateRoute path="/search/details/:id" component={MovieDetailsPage} />
+        <Route component={NotFoundPage} />
       </Switch>
     </div>
   </Router>
