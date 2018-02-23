@@ -2733,16 +2733,27 @@ body {
   padding-top: 10px;
   display: block; }
 
-.search__panel {
+.card {
+  height: 550px; }
+
+.card__panel {
   height: 500px; }
 
-.search__panel__heading {
+.card__panel__heading {
   text-align: center; }
 
-.search__panel__body {
+.card__panel__body {
   height: 400px; }
 
-.search__image {
-  height: 90%;
+.card__image {
+  height: 100%;
   display: block;
   margin: 0 auto; }
+
+@media screen and (max-width: 400px) {
+  .card_panel_buttons_large {
+    display: none; } }
+
+@media screen and (min-width: 399px) {
+  .card_panel_buttons_small {
+    display: none; } }

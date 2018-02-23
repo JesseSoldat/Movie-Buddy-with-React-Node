@@ -5,6 +5,10 @@ import SearchBox from '../components/SearchBox';
 import Card from '../components/Card';
 
 class SearchMoviesPage extends Component {
+  renderCards = () => {
+    return this.props.movies.map(movie => <Card key={movie.id} movie={movie} />)
+  }
+
   render() {
     return (
       <span>
@@ -18,7 +22,7 @@ class SearchMoviesPage extends Component {
 
         <Row>
           <Col xs={12}>
-            <Card />        
+            {this.renderCards()}        
           </Col>
         </Row>
       </Grid>
@@ -28,4 +32,8 @@ class SearchMoviesPage extends Component {
   }
 }
 
-export default connect(undefined)(SearchMoviesPage);
+const mapStateToProps = ({moviedb}) => ({
+  movies: moviedb.movies
+})
+
+export default connect(mapStateToProps)(SearchMoviesPage);
