@@ -2767,3 +2767,6 @@ body {
 
 .icon__heart {
   margin-right: 5px; }
+
+.detail__panel__heading {
+  text-align: center; }

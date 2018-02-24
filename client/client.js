@@ -8,6 +8,7 @@ import configureStore from './store/configureStore';
 import AppRouter, {history} from './router/AppRouter';
 import LoadingPage from './pages/LoadingPage';
 import {login} from './actions/auth';
+import {moviesSearch} from './actions/moviedb';
 
 const store = configureStore();
 
@@ -31,9 +32,13 @@ ReactDOM.render(<LoadingPage/>,
 );
 
 const user = JSON.parse(localStorage.getItem('user'));
+const movies = JSON.parse(localStorage.getItem('movies'));
 
 if(user) {
   store.dispatch(login(user._id, user.token));  
+  if(movies) {
+    store.dispatch(moviesSearch(movies.movies, movies.term));
+  }
   renderApp();
 } else {
   renderApp();

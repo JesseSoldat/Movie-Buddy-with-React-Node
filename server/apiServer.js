@@ -5,6 +5,7 @@ const pick = require('lodash').pick;
 
 const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
+const { Movie } = require('./models/movie');
 const PORT = 3001;
 const app = express();
 
@@ -16,6 +17,7 @@ app.use(passport.session());
 
 
 //API------------------------------------------
+//USER-----------------------------
 app.post('/users', (req, res) => {
   const body = pick(req.body, ['email', 'password']);
   const user = new User(body);
@@ -54,6 +56,16 @@ app.delete('/users/token', (req, res) => {
 
 app.get('/users/hello', (req, res) => {
   res.send('hello');
+});
+
+//MOVIE-----------------------------
+app.post('/favorites', (req, res) => {
+  const movie = new Movie(req.body);
+  movie.save().then(doc => {
+    res.send(doc)
+  }, err => {
+    res.status(400).send(err);
+  });
 });
 
 

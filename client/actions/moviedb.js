@@ -3,6 +3,8 @@ const apiKey = `api_key=${process.env.MOVIE_API}`;
 const baseUrl = 'https://api.themoviedb.org/3/';
 const callBack = '&callback=JSONP_CALLBACK';
 const popular = '&sort_by=popularity.desc';
+import {isLoading} from './loading';
+
 
 //MOVIES_SEARCH------------------------------------
 export const moviesSearch = (movies = [], term = '') => ({
@@ -21,7 +23,9 @@ export const startMoviesSearch = (term = '') => {
       if(err) {
         return console.log(err.message);    
       }
-      dispatch(moviesSearch(res.results, term));
+      const movies = res.results;
+      localStorage.setItem('movies', JSON.stringify({movies, term}));      
+      dispatch(moviesSearch(movies, term));
     });
   }
 }
@@ -34,16 +38,17 @@ export const getDetails = (movie = {}) => ({
 
 export const startGetDetails = (id) => {
   return (dispatch) => {
-    const url = `${baseUrl}movie/${id}?${apiKey}`;
-    console.log(url);
-    
-    
+    const url = `${baseUrl}movie/${id}?${apiKey}`;   
+    dispatch(isLoading(true));
+
     jsonp(url, null, (err, data) => {
       if(err) {
+        dispatch(isLoading(false));
         return console.log(err.message);
+
       }
-      console.log(data);
-      
+      localStorage.setItem('movie', JSON.stringify(data));
+      dispatch(isLoading(false));
       dispatch(getDetails(data));
     });
   }

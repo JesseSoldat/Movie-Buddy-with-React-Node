@@ -31515,6 +31515,8 @@ var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
 
 var _auth = __webpack_require__(235);
 
+var _moviedb = __webpack_require__(910);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var store = (0, _configureStore2.default)();
@@ -31537,9 +31539,13 @@ var renderApp = function renderApp() {
 _reactDom2.default.render(_react2.default.createElement(_LoadingPage2.default, null), document.getElementById('app'));
 
 var user = JSON.parse(localStorage.getItem('user'));
+var movies = JSON.parse(localStorage.getItem('movies'));
 
 if (user) {
   store.dispatch((0, _auth.login)(user._id, user.token));
+  if (movies) {
+    store.dispatch((0, _moviedb.moviesSearch)(movies.movies, movies.term));
+  }
   renderApp();
 } else {
   renderApp();
@@ -44960,9 +44966,17 @@ var _auth = __webpack_require__(706);
 
 var _auth2 = _interopRequireDefault(_auth);
 
+var _loading = __webpack_require__(927);
+
+var _loading2 = _interopRequireDefault(_loading);
+
 var _moviedb = __webpack_require__(707);
 
 var _moviedb2 = _interopRequireDefault(_moviedb);
+
+var _favorites = __webpack_require__(928);
+
+var _favorites2 = _interopRequireDefault(_favorites);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -44970,14 +44984,13 @@ var composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || _redux.com
 
 exports.default = function () {
   var store = (0, _redux.createStore)((0, _redux.combineReducers)({
-    loading: function loading() {
-      return {};
-    },
+    loading: _loading2.default,
     auth: _auth2.default,
     route: function route() {
       return {};
     },
-    moviedb: _moviedb2.default
+    moviedb: _moviedb2.default,
+    favorites: _favorites2.default
   }), composeEnhancers((0, _redux.applyMiddleware)(_reduxThunk2.default)));
   return store;
 };
@@ -45087,7 +45100,7 @@ exports.default = function () {
       });
 
     case "GET_DETAILS":
-      console.log('GET_DETAILS', action.movie);
+      // console.log('GET_DETAILS', action.movie);
       return _extends({}, state, {
         movie: action.movie
       });
@@ -60792,12 +60805,15 @@ var _jsonp = __webpack_require__(911);
 
 var _jsonp2 = _interopRequireDefault(_jsonp);
 
+var _loading = __webpack_require__(929);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var apiKey = 'api_key=' + "c79f0a4b4f8b9c843e385c5cdb521ae1";
 var baseUrl = 'https://api.themoviedb.org/3/';
 var callBack = '&callback=JSONP_CALLBACK';
 var popular = '&sort_by=popularity.desc';
+
 
 //MOVIES_SEARCH------------------------------------
 var moviesSearch = exports.moviesSearch = function moviesSearch() {
@@ -60822,7 +60838,9 @@ var startMoviesSearch = exports.startMoviesSearch = function startMoviesSearch()
       if (err) {
         return console.log(err.message);
       }
-      dispatch(moviesSearch(res.results, term));
+      var movies = res.results;
+      localStorage.setItem('movies', JSON.stringify({ movies: movies, term: term }));
+      dispatch(moviesSearch(movies, term));
     });
   };
 };
@@ -60839,14 +60857,15 @@ var getDetails = exports.getDetails = function getDetails() {
 var startGetDetails = exports.startGetDetails = function startGetDetails(id) {
   return function (dispatch) {
     var url = baseUrl + 'movie/' + id + '?' + apiKey;
-    console.log(url);
+    dispatch((0, _loading.isLoading)(true));
 
     (0, _jsonp2.default)(url, null, function (err, data) {
       if (err) {
+        dispatch((0, _loading.isLoading)(false));
         return console.log(err.message);
       }
-      console.log(data);
-
+      localStorage.setItem('movie', JSON.stringify(data));
+      dispatch((0, _loading.isLoading)(false));
       dispatch(getDetails(data));
     });
   };
@@ -61542,6 +61561,8 @@ var _reactFontawesome2 = _interopRequireDefault(_reactFontawesome);
 
 var _utils = __webpack_require__(917);
 
+var _favorites = __webpack_require__(930);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -61574,6 +61595,12 @@ var Card = function (_Component) {
         pathname: parent + '/details/' + movie.id,
         state: { parent: parent }
       });
+    }, _this.addToFavorites = function () {
+      var _this$props2 = _this.props,
+          movie = _this$props2.movie,
+          startAddFavorite = _this$props2.startAddFavorite;
+
+      startAddFavorite(movie);
     }, _this.renderPoster = function (poster_path) {
       return poster_path ? _react2.default.createElement(_reactBootstrap.Image, { className: 'card__image',
         src: 'http://image.tmdb.org/t/p/w500/' + poster_path,
@@ -61643,7 +61670,8 @@ var Card = function (_Component) {
                 ),
                 _react2.default.createElement(
                   _reactBootstrap.Button,
-                  { bsStyle: 'success' },
+                  { bsStyle: 'success',
+                    onClick: this.addToFavorites },
                   (0, _utils.renderIcon)('heart'),
                   'Favorite'
                 )
@@ -61667,7 +61695,15 @@ var mapStateToProps = function mapStateToProps(state, _ref2) {
   };
 };
 
-exports.default = (0, _reactRedux.connect)(mapStateToProps)(Card);
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    startAddFavorite: function startAddFavorite(movie) {
+      return dispatch((0, _favorites.startAddFavorite)(movie));
+    }
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(Card);
 
 /***/ }),
 /* 916 */
@@ -61751,9 +61787,15 @@ var _reactRedux = __webpack_require__(58);
 
 var _reactBootstrap = __webpack_require__(64);
 
+var _AppRouter = __webpack_require__(313);
+
 var _utils = __webpack_require__(917);
 
 var _moviedb = __webpack_require__(910);
+
+var _LoadingPage = __webpack_require__(919);
+
+var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -61777,12 +61819,108 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
       args[_key] = arguments[_key];
     }
 
-    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = MovieDetailsPage.__proto__ || Object.getPrototypeOf(MovieDetailsPage)).call.apply(_ref, [this].concat(args))), _this), _this.renderPoster = function (poster_path) {
-      return poster_path ? _react2.default.createElement(_reactBootstrap.Image, { className: 'card__image',
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = MovieDetailsPage.__proto__ || Object.getPrototypeOf(MovieDetailsPage)).call.apply(_ref, [this].concat(args))), _this), _this.goBack = function () {
+      var str = _this.props.parent;
+      if (str.indexOf('search') !== -1) {
+        _AppRouter.history.push('/search');
+      } else {
+        _AppRouter.history.push('/favorites');
+      }
+    }, _this.renderPoster = function (poster_path) {
+      return poster_path ? _react2.default.createElement(_reactBootstrap.Image, { className: 'detail__image',
         src: 'http://image.tmdb.org/t/p/w500/' + poster_path,
-        thumbnail: true }) : _react2.default.createElement(_reactBootstrap.Image, { className: 'card__image',
+        thumbnail: true }) : _react2.default.createElement(_reactBootstrap.Image, { className: 'detail__image',
         src: '/images/noFilm.png',
         thumbnail: true });
+    }, _this.renderListItem = function (string, prop) {
+      return prop ? _react2.default.createElement(
+        _reactBootstrap.ListGroupItem,
+        null,
+        _react2.default.createElement(
+          'strong',
+          null,
+          string
+        ),
+        _react2.default.createElement('br', null),
+        prop
+      ) : '';
+    }, _this.renderListArrayItems = function (string) {
+      var array = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : [];
+
+      if (array.length === 0) {
+        return;
+      }
+
+      var elementsMap = array.map(function (e, i) {
+        return array.length === i + 1 ? _react2.default.createElement(
+          'span',
+          { key: e.id },
+          e.name
+        ) : _react2.default.createElement(
+          'span',
+          { key: e.id },
+          e.name,
+          ', '
+        );
+      });
+      return _this.renderListItem(string, elementsMap);
+    }, _this.renderListLinkItem = function (string, prop) {
+      return prop ? _react2.default.createElement(
+        _reactBootstrap.ListGroupItem,
+        null,
+        _react2.default.createElement(
+          'strong',
+          null,
+          string
+        ),
+        _react2.default.createElement('br', null),
+        _react2.default.createElement(
+          'a',
+          { href: prop, target: '_blank' },
+          prop
+        )
+      ) : '';
+    }, _this.renderButtonGroup = function () {
+      var str = _this.props.parent;
+      if (str.indexOf('search') !== -1) {
+        return _react2.default.createElement(
+          _reactBootstrap.ButtonGroup,
+          { className: 'detail__panel__button' },
+          _react2.default.createElement(
+            _reactBootstrap.Button,
+            { className: 'detail__panel__button',
+              onClick: _this.goBack,
+              bsStyle: 'primary' },
+            'Back'
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Button,
+            { className: 'detail__panel__button',
+              bsStyle: 'success' },
+            (0, _utils.renderIcon)('heart'),
+            'Favorite'
+          )
+        );
+      } else {
+        return _react2.default.createElement(
+          _reactBootstrap.ButtonGroup,
+          { className: 'detail__panel__button' },
+          _react2.default.createElement(
+            _reactBootstrap.Button,
+            { className: 'detail__panel__button',
+              onClick: _this.goBack,
+              bsStyle: 'primary' },
+            'Back'
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Button,
+            { className: 'detail__panel__button',
+              bsStyle: 'danger' },
+            (0, _utils.renderIcon)('trash'),
+            'Delete'
+          )
+        );
+      }
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -61794,7 +61932,10 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
   }, {
     key: 'render',
     value: function render() {
-      console.log(this.props.moviedb);
+      if (this.props.loading) {
+        return _react2.default.createElement(_LoadingPage2.default, null);
+      }
+      console.log(this.props.movie);
 
       var movie = this.props.movie;
       var title = movie.title,
@@ -61816,19 +61957,38 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
           null,
           _react2.default.createElement(
             _reactBootstrap.Col,
-            { xs: 12, sm: 10, smOffset: 1 },
+            { xs: 12 },
             _react2.default.createElement(
               _reactBootstrap.Panel,
-              { className: 'card__panel' },
+              { className: 'detail__panel' },
               _react2.default.createElement(
                 _reactBootstrap.Panel.Heading,
-                { className: 'card__panel__heading' },
+                { className: 'detail__panel__heading' },
                 title
               ),
               _react2.default.createElement(
                 _reactBootstrap.Panel.Body,
-                { className: 'card__panel__body' },
-                this.renderPoster(poster_path)
+                { className: 'detail__panel__body' },
+                _react2.default.createElement(
+                  _reactBootstrap.Col,
+                  { xs: 6 },
+                  this.renderPoster(poster_path)
+                ),
+                _react2.default.createElement(
+                  _reactBootstrap.Col,
+                  { xs: 6 },
+                  _react2.default.createElement(
+                    _reactBootstrap.ListGroup,
+                    null,
+                    this.renderListItem('Original Title: ', original_title),
+                    this.renderListItem('Release Date: ', release_date),
+                    this.renderListItem('Rating: ', vote_average),
+                    this.renderListArrayItems('Genres: ', genres),
+                    this.renderListArrayItems('Production Company:  ', production_companies),
+                    this.renderListItem('Description: ', overview),
+                    this.renderListLinkItem('Home Page: ', homepage)
+                  )
+                )
               ),
               _react2.default.createElement(
                 _reactBootstrap.Panel.Footer,
@@ -61836,21 +61996,7 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
                 _react2.default.createElement(
                   _reactBootstrap.ButtonToolbar,
                   null,
-                  _react2.default.createElement(
-                    _reactBootstrap.ButtonGroup,
-                    null,
-                    _react2.default.createElement(
-                      _reactBootstrap.Button,
-                      { bsStyle: 'primary' },
-                      'Back'
-                    ),
-                    _react2.default.createElement(
-                      _reactBootstrap.Button,
-                      { bsStyle: 'success' },
-                      (0, _utils.renderIcon)('heart'),
-                      'Favorite'
-                    )
-                  )
+                  this.renderButtonGroup()
                 )
               )
             )
@@ -61864,11 +62010,13 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
 }(_react.Component);
 
 var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
-  var moviedb = _ref2.moviedb;
+  var loading = _ref2.loading,
+      moviedb = _ref2.moviedb;
   return {
+    loading: loading,
     id: ownProps.match.params.id,
-    movie: moviedb.movie,
-    moviedb: moviedb
+    parent: ownProps.match.url,
+    movie: moviedb.movie
   };
 };
 
@@ -61918,6 +62066,161 @@ var LoadingPage = function LoadingPage() {
 };
 
 exports.default = LoadingPage;
+
+/***/ }),
+/* 920 */,
+/* 921 */,
+/* 922 */,
+/* 923 */,
+/* 924 */,
+/* 925 */,
+/* 926 */,
+/* 927 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : false;
+  var action = arguments[1];
+
+  if (action.type === 'IS_LOADING') {
+    return action.loading;
+  }
+  return state;
+};
+
+/***/ }),
+/* 928 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
+
+exports.default = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var action = arguments[1];
+
+  switch (action.type) {
+    case "GET_FAVORITES":
+      console.log('GET_FAVORITE', action.favorites);
+      return action.favorites;
+
+    case 'ADD_FAVORITE':
+      console.log('ADD_FAVORITE', action);
+      return [].concat(_toConsumableArray(state), [action.movie]);
+
+    default:
+      return state;
+  }
+};
+
+/***/ }),
+/* 929 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var isLoading = exports.isLoading = function isLoading(loading) {
+  return {
+    type: 'IS_LOADING',
+    loading: loading
+  };
+};
+
+/***/ }),
+/* 930 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.getFavorites = undefined;
+
+var _axios = __webpack_require__(886);
+
+var _axios2 = _interopRequireDefault(_axios);
+
+var _jsonp = __webpack_require__(911);
+
+var _jsonp2 = _interopRequireDefault(_jsonp);
+
+var _loading = __webpack_require__(929);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+var apiKey = 'api_key=' + "c79f0a4b4f8b9c843e385c5cdb521ae1";
+var baseUrl = 'https://api.themoviedb.org/3/';
+
+var getFavorites = exports.getFavorites = function getFavorites(favorites) {
+  return {
+    type: 'GET_FAVORITES',
+    favorites: favorites
+  };
+};
+
+//ADD_FAVORITE------------------------------------
+var addFavorite = exports.addFavorite = function addFavorite(favorite) {
+  return {
+    type: 'ADD_FAVORITE',
+    favorite: favorite
+  };
+};
+
+var startAddFavorite = exports.startAddFavorite = function startAddFavorite(_ref) {
+  var id = _ref.id;
+
+  return function (dispatch) {
+    var url = baseUrl + 'movie/' + id + '?' + apiKey;
+
+    (0, _jsonp2.default)(url, null, function (err, res) {
+      if (err) {
+        return console.log(err.message);
+      }
+      dispatch(saveMovieToDatabase(res));
+    });
+  };
+};
+
+var saveMovieToDatabase = exports.saveMovieToDatabase = function saveMovieToDatabase(m) {
+  var movie = {
+    title: m.title || '',
+    poster_path: m.poster_path || '',
+    original_title: m.original_title || '',
+    release_date: m.release_date || '',
+    vote_average: m.vote_average || null,
+    genres: m.genres || [],
+    production_companies: m.production_companies || [],
+    overview: m.overview || '',
+    homepage: m.homepage || ''
+  };
+
+  return function (dispatch) {
+    _axios2.default.post('api/favorites', movie).then(function (res) {
+      dispatch(addFavorite(res));
+    }).catch(function (err) {
+      console.log(err);
+    });
+  };
+};
 
 /***/ })
 /******/ ]);

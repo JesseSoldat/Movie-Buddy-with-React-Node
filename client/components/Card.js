@@ -4,6 +4,7 @@ import {Col, Panel, Image, ButtonToolbar, ButtonGroup, Button} from 'react-boots
 import {history} from '../router/AppRouter';
 import FontAwesome from 'react-fontawesome';
 import {truncateText, renderIcon} from '../utils';
+import {startAddFavorite} from '../actions/favorites';
 
 class Card extends Component {
   onViewDetails = () => {
@@ -13,6 +14,11 @@ class Card extends Component {
       pathname: `${parent}/details/${movie.id}`,
       state: { parent }
     });
+  }
+
+  addToFavorites = () => {
+    const {movie, startAddFavorite} = this.props;
+    startAddFavorite(movie);
   }
 
   renderPoster = (poster_path) => (
@@ -59,7 +65,8 @@ class Card extends Component {
                 >
                   View
                 </Button>
-                <Button bsStyle="success">
+                <Button bsStyle="success"
+                  onClick={this.addToFavorites}>
                   {renderIcon('heart')}                
                   Favorite
                 </Button>
@@ -77,4 +84,8 @@ const mapStateToProps = (state, {movie, from}) => ({
   parent: from
 });
 
-export default connect(mapStateToProps)(Card);
+const mapDispatchToProps = (dispatch) => ({
+  startAddFavorite: (movie) => dispatch(startAddFavorite(movie))
+});
+
+export default connect(mapStateToProps, mapDispatchToProps)(Card);

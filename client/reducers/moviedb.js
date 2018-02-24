@@ -15,7 +15,7 @@ export default (state = initialState, action) => {
       };
 
     case "GET_DETAILS":
-      console.log('GET_DETAILS', action.movie);
+      // console.log('GET_DETAILS', action.movie);
       return {
         ...state,
         movie: action.movie
