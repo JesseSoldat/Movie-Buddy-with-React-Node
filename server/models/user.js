@@ -3,6 +3,7 @@ const validator = require('validator');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const pick = require('lodash').pick;
+const {JWT_SECRET} = require('../config');
 
 const UserSchema = new mongoose.Schema({
   email: {
@@ -42,12 +43,13 @@ UserSchema.methods.toJSON = function() {
 };
 
 UserSchema.methods.generateAuthToken = function() {
+
   const user = this;
   const access = "auth";
   const token = jwt.sign({
     _id: user._id.toHexString(),
     access
-  }, 'mysupercoolsecret').toString();
+  }, JWT_SECRET).toString();
   user.tokens = [];
   user.tokens.push({access, token});
 
@@ -89,6 +91,22 @@ UserSchema.methods.removeToken = function(token) {
     $pull: {
       tokens: {token}
     }
+  });
+}
+
+UserSchema.statics.findByToken = function(token) {
+  const User = this;
+  let decoded;
+  try {
+    decoded = jwt.verify(token, JWT_SECRET);
+  }
+  catch (err) {
+    return Promise.reject(err)
+  }
+  return User.findOne({
+    '_id': decoded._id,
+    'tokens.token': token,
+    'tokens.access': 'auth'
   });
 }
 

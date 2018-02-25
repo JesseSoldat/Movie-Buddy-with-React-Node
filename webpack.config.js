@@ -57,7 +57,8 @@ module.exports = () => {
     plugins: [
       CSSExtract,
       new webpack.DefinePlugin({
-        'process.env.MOVIE_API': JSON.stringify(process.env.MOVIE_API)
+        'process.env.MOVIE_API': JSON.stringify(process.env.MOVIE_API),
+        'process.env.JWT_SECRET': JSON.stringify(process.env.JWT_SECRET)
       })
     ],
     // devtool: 'inline-source-map',

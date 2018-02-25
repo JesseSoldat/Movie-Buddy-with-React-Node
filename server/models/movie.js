@@ -36,6 +36,10 @@ const Movie = mongoose.model('Movie', {
   homepage: {
     type: String,
     default : ''    
+  },
+  _creator: {
+    type: mongoose.Schema.Types.ObjectId,
+    required: true
   }
 });
 

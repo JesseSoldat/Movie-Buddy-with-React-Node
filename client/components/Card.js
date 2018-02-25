@@ -54,7 +54,8 @@ class Card extends Component {
                 >
                   View
                 </Button>
-                <Button bsStyle="success">
+                <Button bsStyle="success"
+                  onClick={this.addToFavorites}>
                   {renderIcon('heart')}
                   Favorite
                 </Button>

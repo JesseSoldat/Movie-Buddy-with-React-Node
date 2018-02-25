@@ -6,6 +6,7 @@ const pick = require('lodash').pick;
 const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
 const { Movie } = require('./models/movie');
+const { authenticate } = require('./middleware/authenticate');
 const PORT = 3001;
 const app = express();
 
@@ -46,7 +47,7 @@ app.post('/users/login', (req, res) => {
     .catch(e => res.status(400).send(e));
 });
 
-app.delete('/users/token', (req, res) => {
+app.delete('/users/token', authenticate, (req, res) => {
   console.log(req);  
   req.user.removeToken(req.token).then(() => {
     res.status(200).send({'token': null});
@@ -54,13 +55,24 @@ app.delete('/users/token', (req, res) => {
   .catch(e => res.status(400).send(e));
 });
 
-app.get('/users/hello', (req, res) => {
-  res.send('hello');
+app.get('/users/me', authenticate, (req, res) => {
+  res.send(req.user);
 });
 
 //MOVIE-----------------------------
-app.post('/favorites', (req, res) => {
-  const movie = new Movie(req.body);
+app.get('/favorites', (req, res) => {
+
+});
+
+app.post('/favorites', authenticate, (req, res) => {
+  console.log(req.user._id);
+  console.log(req.body);
+  
+  
+  const movie = new Movie({
+    ...req.body, 
+    _creator: req.user._id
+  });
   movie.save().then(doc => {
     res.send(doc)
   }, err => {

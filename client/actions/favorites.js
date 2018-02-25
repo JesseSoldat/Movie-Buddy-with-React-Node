@@ -41,13 +41,20 @@ export const saveMovieToDatabase = (m) => {
     homepage: m.homepage || ''
   };
 
-  return (dispatch) => {
-    axios.post('api/favorites', movie).then(res => {
-      dispatch(addFavorite(res));  
-    })
-    .catch(err => {
-      console.log(err);   
-    });  
+  return (dispatch, getState) => {
+    const token = getState().auth.token; 
+    const config = { headers: { 'x-auth': token } };
+    
+    axios.post('/api/favorites', movie, config)
+      .then(res => {
+        console.log(res);
+        dispatch(addFavorite(res.data));  
+      })
+      .catch(err => {
+        console.log(err);   
+      });   
+  
+    
   }
 }
 
