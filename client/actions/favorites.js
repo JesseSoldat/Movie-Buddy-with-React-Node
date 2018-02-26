@@ -11,6 +11,24 @@ export const getFavorites = (favorites) => ({
   favorites
 });
 
+
+export const startGetFavorites = () => {
+  return (dispatch, getState) => {
+    dispatch(isLoading(true));    
+    const token = getState().auth.token; 
+    const config = { headers: { 'x-auth': token } };
+
+    return axios.get('/api/favorites', config).then(res => {
+      dispatch(getFavorites(res.data.movies))   
+      dispatch(isLoading(false));     
+    })
+    .catch(err => {
+      dispatch(isLoading(false));  
+      console.log(err);
+    });
+  }
+};
+
 //ADD_FAVORITE------------------------------------
 export const addFavorite = (favorite) => ({
   type: 'ADD_FAVORITE',
@@ -30,6 +48,7 @@ export const startAddFavorite = ({id}) => {
 
 export const saveMovieToDatabase = (m) => {
   const movie = {
+    movieid: m.id,
     title: m.title || '',
     poster_path: m.poster_path || '',
     original_title: m.original_title || '',
@@ -47,14 +66,32 @@ export const saveMovieToDatabase = (m) => {
     
     axios.post('/api/favorites', movie, config)
       .then(res => {
-        console.log(res);
         dispatch(addFavorite(res.data));  
       })
       .catch(err => {
         console.log(err);   
       });   
-  
-    
+  }
+};
+
+//DELETE FAVORITE----------------------------------
+export const deleteFavorite = (id) => ({
+  type: 'DELETE_FAVORITE',
+  id
+});
+
+export const startDeleteFavorite = (id) => {
+ 
+  return (dispatch, getState) => {
+    const token = getState().auth.token; 
+    const config = { headers: { 'x-auth': token } };
+
+    axios.delete(`/api/favorites/${id}`, config).then(res => {
+      dispatch(deleteFavorite(id));
+    })
+    .catch(err => {
+
+    });
   }
 }
 

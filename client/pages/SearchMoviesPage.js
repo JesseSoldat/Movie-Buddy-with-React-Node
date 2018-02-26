@@ -3,11 +3,12 @@ import {connect} from 'react-redux';
 import {Well, Grid, Row, Col} from 'react-bootstrap';
 import SearchBox from '../components/SearchBox';
 import Card from '../components/Card';
+import newMoviesSelector from '../selectors/newMovies';
 
 class SearchMoviesPage extends Component {
   renderCards = () => {
     const from = this.props.route;
-    return this.props.movies.map(movie => <Card key={movie.id} movie={movie} from={from} />)
+    return this.props.movies.map(movie => <Card key={movie.id} movie={movie} from={from} />);
   }
 
   render() {
@@ -26,15 +27,14 @@ class SearchMoviesPage extends Component {
           </Col>
         </Row>
       </Grid>
-      </span>
-     
+      </span> 
     );
   }
 }
 
-const mapStateToProps = ({moviedb}, ownProps) => ({
-  movies: moviedb.movies,
+const mapStateToProps = ({moviedb, favorites}, ownProps) => ({
+  movies: newMoviesSelector(moviedb.movies, favorites),
   route: ownProps.match.path
-})
+});
 
 export default connect(mapStateToProps)(SearchMoviesPage);

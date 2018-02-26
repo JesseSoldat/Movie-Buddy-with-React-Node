@@ -2,6 +2,7 @@ const express = require('express');
 const passport = require('passport');
 const bodyParser = require('body-parser');
 const pick = require('lodash').pick;
+const { ObjectID } = require('mongodb');
 
 const { mongoose } = require('./db/mongoose');
 const { User } = require('./models/user');
@@ -14,8 +15,6 @@ app.use(bodyParser.json());
 
 app.use(passport.initialize());
 app.use(passport.session());
-
-
 
 //API------------------------------------------
 //USER-----------------------------
@@ -60,15 +59,16 @@ app.get('/users/me', authenticate, (req, res) => {
 });
 
 //MOVIE-----------------------------
-app.get('/favorites', (req, res) => {
-
+app.get('/favorites', authenticate, (req, res) => {
+  Movie.find({
+    _creator: req.user._id
+  })
+  .then(movies => {
+    res.send({movies});
+  }, err => res.status(400).send(err))
 });
 
 app.post('/favorites', authenticate, (req, res) => {
-  console.log(req.user._id);
-  console.log(req.body);
-  
-  
   const movie = new Movie({
     ...req.body, 
     _creator: req.user._id
@@ -77,6 +77,31 @@ app.post('/favorites', authenticate, (req, res) => {
     res.send(doc)
   }, err => {
     res.status(400).send(err);
+  });
+});
+
+app.delete('/favorites/:id', authenticate, (req, res) => {
+  const id = req.params.id;
+  
+  if(!ObjectID.isValid(id)) {
+    console.log('not valid');  
+    return res.status(404).send({msg: 'The MOVIE ID is NOT valid!'});
+  }
+
+  Movie.findOneAndRemove({
+    _id: id,
+    _creator: req.user._id
+  }).then(movie => {
+    if(!movie) {
+      console.log('no movie found', movie);
+      
+      return res.status(404).send({'msg': 'The MOVIE could NOT be deleted!'});
+    }
+    res.send({movie});
+  }).catch(err => {
+    console.log('catch delete err', err);
+    
+    res.status(400).send({'msg': err});
   });
 });
 

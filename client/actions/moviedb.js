@@ -28,7 +28,7 @@ export const startMoviesSearch = (term = '') => {
       dispatch(moviesSearch(movies, term));
     });
   }
-}
+};
 
 //GET_DETAILS------------------------------------
 export const getDetails = (movie = {}) => ({
@@ -52,4 +52,15 @@ export const startGetDetails = (id) => {
       dispatch(getDetails(data));
     });
   }
-}
+};
+
+//REMOVE FROM SEARCH------------------------------
+export const startRemoveFromSearch = (id) => {
+  return (dispatch, getState) => {
+    const movies = getState().moviedb.movies;
+    const term = getState().moviedb.term;
+
+    const newList = movies.filter(movie => movie.id !== id);
+    dispatch(moviesSearch(newList, term));
+  };
+};

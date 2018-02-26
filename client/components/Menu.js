@@ -27,8 +27,11 @@ class Menu extends Component {
           <LinkContainer to="/search">
             <NavItem eventKey={1}>Search</NavItem>
           </LinkContainer>
+          <LinkContainer to="/favorites">
+            <NavItem eventKey={2}>Favorites</NavItem>
+          </LinkContainer>
           <LinkContainer to="/logout">
-            <NavItem eventKey={2}>Logout</NavItem>
+            <NavItem eventKey={3}>Logout</NavItem>
           </LinkContainer>
         </Nav>
       );

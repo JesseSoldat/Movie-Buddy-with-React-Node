@@ -1,6 +1,9 @@
 const mongoose = require('mongoose');
 
 const Movie = mongoose.model('Movie', {
+  movieid: {
+    type: Number
+  },
   title: {
     type: String,
      default : ''   

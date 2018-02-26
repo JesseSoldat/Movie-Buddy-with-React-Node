@@ -4,21 +4,29 @@ import {Col, Panel, Image, ButtonToolbar, ButtonGroup, Button} from 'react-boots
 import {history} from '../router/AppRouter';
 import FontAwesome from 'react-fontawesome';
 import {truncateText, renderIcon} from '../utils';
-import {startAddFavorite} from '../actions/favorites';
+import {startAddFavorite, startDeleteFavorite} from '../actions/favorites';
+import {startRemoveFromSearch} from '../actions/moviedb';
 
 class Card extends Component {
   onViewDetails = () => {
     const {parent, movie} = this.props;
+    const id = movie.id || movie.movieid;
    
     history.push({
-      pathname: `${parent}/details/${movie.id}`,
+      pathname: `${parent}/details/${id}`,
       state: { parent }
     });
   }
 
   addToFavorites = () => {
-    const {movie, startAddFavorite} = this.props;
+    const {movie, startAddFavorite, startRemoveFromSearch} = this.props;
     startAddFavorite(movie);
+    startRemoveFromSearch(movie.id);
+  }
+
+  deleteFromFavorites = () => {
+    const {startDeleteFavorite, movie} = this.props;
+    startDeleteFavorite(movie._id);
   }
 
   renderPoster = (poster_path) => (
@@ -31,7 +39,66 @@ class Card extends Component {
         src="/images/noFilm.png"  
         thumbnail />
     )
-  )
+  );
+
+  renderButtonGroup = () => {
+    const {parent} = this.props;
+    if(parent.indexOf('search') !== -1) {
+       return (
+        <ButtonToolbar>
+          <ButtonGroup className="card_panel_buttons_large">
+            <Button bsStyle="primary"
+              onClick={this.onViewDetails}>
+              View
+            </Button>
+            <Button bsStyle="success"
+              onClick={this.addToFavorites}>
+              {renderIcon('heart')}
+              Favorite
+            </Button>
+          </ButtonGroup>
+          <ButtonGroup bsSize="small" className="card_panel_buttons_small">
+            <Button bsStyle="primary"
+              onClick={this.onViewDetails}>
+              View
+            </Button>
+            <Button bsStyle="success"
+              onClick={this.addToFavorites}>
+              {renderIcon('heart')}                
+              Favorite
+            </Button>
+          </ButtonGroup>
+        </ButtonToolbar>
+       );
+    } else {
+      return (
+        <ButtonToolbar>
+        <ButtonGroup className="card_panel_buttons_large">
+          <Button bsStyle="primary"
+            onClick={this.onViewDetails}>
+            View
+          </Button>
+          <Button bsStyle="danger"
+            onClick={this.deleteFromFavorites}>
+            {renderIcon('trash')}
+            Delete
+          </Button>
+        </ButtonGroup>
+        <ButtonGroup bsSize="small" className="card_panel_buttons_small">
+          <Button bsStyle="primary"
+            onClick={this.onViewDetails}>
+            View
+          </Button>
+          <Button bsStyle="danger"
+             onClick={this.deleteFromFavorites}>
+            {renderIcon('trash')}              
+            Delete
+          </Button>
+        </ButtonGroup>
+      </ButtonToolbar>
+      );
+    }
+  }
 
 
   render() {
@@ -47,32 +114,7 @@ class Card extends Component {
            {this.renderPoster(poster_path)}
           </Panel.Body>
           <Panel.Footer>
-            <ButtonToolbar>
-              <ButtonGroup className="card_panel_buttons_large">
-                <Button bsStyle="primary"
-                  onClick={this.onViewDetails}                
-                >
-                  View
-                </Button>
-                <Button bsStyle="success"
-                  onClick={this.addToFavorites}>
-                  {renderIcon('heart')}
-                  Favorite
-                </Button>
-              </ButtonGroup>
-              <ButtonGroup bsSize="small" className="card_panel_buttons_small">
-                <Button bsStyle="primary"
-                  onClick={this.onViewDetails}
-                >
-                  View
-                </Button>
-                <Button bsStyle="success"
-                  onClick={this.addToFavorites}>
-                  {renderIcon('heart')}                
-                  Favorite
-                </Button>
-              </ButtonGroup>
-            </ButtonToolbar>
+            {this.renderButtonGroup()}
           </Panel.Footer>
         </Panel>
       </Col>
@@ -86,7 +128,9 @@ const mapStateToProps = (state, {movie, from}) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  startAddFavorite: (movie) => dispatch(startAddFavorite(movie))
+  startAddFavorite: (movie) => dispatch(startAddFavorite(movie)),
+  startRemoveFromSearch: (id) => dispatch(startRemoveFromSearch(id)),
+  startDeleteFavorite: (id) => dispatch(startDeleteFavorite(id))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Card);

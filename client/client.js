@@ -9,6 +9,7 @@ import AppRouter, {history} from './router/AppRouter';
 import LoadingPage from './pages/LoadingPage';
 import {login} from './actions/auth';
 import {moviesSearch} from './actions/moviedb';
+import {startGetFavorites} from './actions/favorites';
 
 const store = configureStore();
 
@@ -39,7 +40,9 @@ if(user) {
   if(movies) {
     store.dispatch(moviesSearch(movies.movies, movies.term));
   }
-  renderApp();
+  store.dispatch(startGetFavorites()).then(() => {
+    renderApp();
+  }); 
 } else {
   renderApp();
 }

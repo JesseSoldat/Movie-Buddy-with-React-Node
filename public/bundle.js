@@ -12843,6 +12843,10 @@ var _MovieDetailsPage = __webpack_require__(923);
 
 var _MovieDetailsPage2 = _interopRequireDefault(_MovieDetailsPage);
 
+var _FavoritesPage = __webpack_require__(931);
+
+var _FavoritesPage2 = _interopRequireDefault(_FavoritesPage);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var history = exports.history = (0, _createBrowserHistory2.default)();
@@ -12878,7 +12882,9 @@ var AppRouter = function AppRouter() {
         _react2.default.createElement(_PrivateRoute2.default, { path: '/logout', component: _LogoutPage2.default }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/dashboard', component: _DashboardPage2.default }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/search', component: _SearchMoviesPage2.default, exact: true }),
+        _react2.default.createElement(_PrivateRoute2.default, { path: '/favorites', component: _FavoritesPage2.default, exact: true }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/search/details/:id', component: _MovieDetailsPage2.default }),
+        _react2.default.createElement(_PrivateRoute2.default, { path: '/favorites/details/:id', component: _MovieDetailsPage2.default }),
         _react2.default.createElement(_reactRouterDom.Route, { component: NotFoundPage })
       )
     )
@@ -14995,7 +15001,7 @@ module.exports = defaults;
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startGetDetails = exports.getDetails = exports.startMoviesSearch = exports.moviesSearch = undefined;
+exports.startRemoveFromSearch = exports.startGetDetails = exports.getDetails = exports.startMoviesSearch = exports.moviesSearch = undefined;
 
 var _jsonp = __webpack_require__(376);
 
@@ -15064,6 +15070,19 @@ var startGetDetails = exports.startGetDetails = function startGetDetails(id) {
       dispatch((0, _loading.isLoading)(false));
       dispatch(getDetails(data));
     });
+  };
+};
+
+//REMOVE FROM SEARCH------------------------------
+var startRemoveFromSearch = exports.startRemoveFromSearch = function startRemoveFromSearch(id) {
+  return function (dispatch, getState) {
+    var movies = getState().moviedb.movies;
+    var term = getState().moviedb.term;
+
+    var newList = movies.filter(function (movie) {
+      return movie.id !== id;
+    });
+    dispatch(moviesSearch(newList, term));
   };
 };
 
@@ -21531,10 +21550,19 @@ var Menu = function (_Component) {
           ),
           _react2.default.createElement(
             _reactRouterBootstrap.LinkContainer,
-            { to: '/logout' },
+            { to: '/favorites' },
             _react2.default.createElement(
               _reactBootstrap.NavItem,
               { eventKey: 2 },
+              'Favorites'
+            )
+          ),
+          _react2.default.createElement(
+            _reactRouterBootstrap.LinkContainer,
+            { to: '/logout' },
+            _react2.default.createElement(
+              _reactBootstrap.NavItem,
+              { eventKey: 3 },
               'Logout'
             )
           )
@@ -31800,6 +31828,8 @@ var _auth = __webpack_require__(236);
 
 var _moviedb = __webpack_require__(238);
 
+var _favorites = __webpack_require__(922);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var store = (0, _configureStore2.default)();
@@ -31829,7 +31859,9 @@ if (user) {
   if (movies) {
     store.dispatch((0, _moviedb.moviesSearch)(movies.movies, movies.term));
   }
-  renderApp();
+  store.dispatch((0, _favorites.startGetFavorites)()).then(function () {
+    renderApp();
+  });
 } else {
   renderApp();
 }
@@ -45328,7 +45360,7 @@ exports.default = function () {
 
   switch (action.type) {
     case "LOGIN":
-      console.log('LOGIN', action);
+      // console.log('LOGIN', action);   
       return _extends({}, state, {
         _id: action._id,
         token: action.token
@@ -45433,12 +45465,19 @@ exports.default = function () {
 
   switch (action.type) {
     case "GET_FAVORITES":
-      console.log('GET_FAVORITE', action.favorites);
+      console.log('GET_FAVORITES', action.favorites);
       return action.favorites;
 
     case 'ADD_FAVORITE':
       console.log('ADD_FAVORITE', action);
-      return [].concat(_toConsumableArray(state), [action.movie]);
+      var newState = [].concat(_toConsumableArray(state), [action.favorite]);
+      return newState;
+
+    case 'DELETE_FAVORITE':
+      console.log('DELETE_FAVORITE', action);
+      // const newState = [...state];
+      // newState = newState.filter(movie => movie)
+      return state;
 
     default:
       return state;
@@ -60943,6 +60982,10 @@ var _Card = __webpack_require__(920);
 
 var _Card2 = _interopRequireDefault(_Card);
 
+var _newMovies = __webpack_require__(932);
+
+var _newMovies2 = _interopRequireDefault(_newMovies);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -61009,9 +61052,10 @@ var SearchMoviesPage = function (_Component) {
 }(_react.Component);
 
 var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
-  var moviedb = _ref2.moviedb;
+  var moviedb = _ref2.moviedb,
+      favorites = _ref2.favorites;
   return {
-    movies: moviedb.movies,
+    movies: (0, _newMovies2.default)(moviedb.movies, favorites),
     route: ownProps.match.path
   };
 };
@@ -61707,6 +61751,8 @@ var _utils = __webpack_require__(378);
 
 var _favorites = __webpack_require__(922);
 
+var _moviedb = __webpack_require__(238);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -61734,23 +61780,114 @@ var Card = function (_Component) {
           parent = _this$props.parent,
           movie = _this$props.movie;
 
+      var id = movie.id || movie.movieid;
 
       _AppRouter.history.push({
-        pathname: parent + '/details/' + movie.id,
+        pathname: parent + '/details/' + id,
         state: { parent: parent }
       });
     }, _this.addToFavorites = function () {
       var _this$props2 = _this.props,
           movie = _this$props2.movie,
-          startAddFavorite = _this$props2.startAddFavorite;
+          startAddFavorite = _this$props2.startAddFavorite,
+          startRemoveFromSearch = _this$props2.startRemoveFromSearch;
 
       startAddFavorite(movie);
+      startRemoveFromSearch(movie.id);
+    }, _this.deleteFromFavorites = function () {
+      var _this$props3 = _this.props,
+          startDeleteFavorite = _this$props3.startDeleteFavorite,
+          movie = _this$props3.movie;
+
+      startDeleteFavorite(movie._id);
     }, _this.renderPoster = function (poster_path) {
       return poster_path ? _react2.default.createElement(_reactBootstrap.Image, { className: 'card__image',
         src: 'http://image.tmdb.org/t/p/w500/' + poster_path,
         thumbnail: true }) : _react2.default.createElement(_reactBootstrap.Image, { className: 'card__image',
         src: '/images/noFilm.png',
         thumbnail: true });
+    }, _this.renderButtonGroup = function () {
+      var parent = _this.props.parent;
+
+      if (parent.indexOf('search') !== -1) {
+        return _react2.default.createElement(
+          _reactBootstrap.ButtonToolbar,
+          null,
+          _react2.default.createElement(
+            _reactBootstrap.ButtonGroup,
+            { className: 'card_panel_buttons_large' },
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'primary',
+                onClick: _this.onViewDetails },
+              'View'
+            ),
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'success',
+                onClick: _this.addToFavorites },
+              (0, _utils.renderIcon)('heart'),
+              'Favorite'
+            )
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.ButtonGroup,
+            { bsSize: 'small', className: 'card_panel_buttons_small' },
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'primary',
+                onClick: _this.onViewDetails },
+              'View'
+            ),
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'success',
+                onClick: _this.addToFavorites },
+              (0, _utils.renderIcon)('heart'),
+              'Favorite'
+            )
+          )
+        );
+      } else {
+        return _react2.default.createElement(
+          _reactBootstrap.ButtonToolbar,
+          null,
+          _react2.default.createElement(
+            _reactBootstrap.ButtonGroup,
+            { className: 'card_panel_buttons_large' },
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'primary',
+                onClick: _this.onViewDetails },
+              'View'
+            ),
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'danger',
+                onClick: _this.deleteFromFavorites },
+              (0, _utils.renderIcon)('trash'),
+              'Delete'
+            )
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.ButtonGroup,
+            { bsSize: 'small', className: 'card_panel_buttons_small' },
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'primary',
+                onClick: _this.onViewDetails },
+              'View'
+            ),
+            _react2.default.createElement(
+              _reactBootstrap.Button,
+              { bsStyle: 'danger',
+                onClick: _this.deleteFromFavorites },
+              (0, _utils.renderIcon)('trash'),
+              'Delete'
+            )
+          )
+        );
+      }
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -61782,46 +61919,7 @@ var Card = function (_Component) {
           _react2.default.createElement(
             _reactBootstrap.Panel.Footer,
             null,
-            _react2.default.createElement(
-              _reactBootstrap.ButtonToolbar,
-              null,
-              _react2.default.createElement(
-                _reactBootstrap.ButtonGroup,
-                { className: 'card_panel_buttons_large' },
-                _react2.default.createElement(
-                  _reactBootstrap.Button,
-                  { bsStyle: 'primary',
-                    onClick: this.onViewDetails
-                  },
-                  'View'
-                ),
-                _react2.default.createElement(
-                  _reactBootstrap.Button,
-                  { bsStyle: 'success',
-                    onClick: this.addToFavorites },
-                  (0, _utils.renderIcon)('heart'),
-                  'Favorite'
-                )
-              ),
-              _react2.default.createElement(
-                _reactBootstrap.ButtonGroup,
-                { bsSize: 'small', className: 'card_panel_buttons_small' },
-                _react2.default.createElement(
-                  _reactBootstrap.Button,
-                  { bsStyle: 'primary',
-                    onClick: this.onViewDetails
-                  },
-                  'View'
-                ),
-                _react2.default.createElement(
-                  _reactBootstrap.Button,
-                  { bsStyle: 'success',
-                    onClick: this.addToFavorites },
-                  (0, _utils.renderIcon)('heart'),
-                  'Favorite'
-                )
-              )
-            )
+            this.renderButtonGroup()
           )
         )
       );
@@ -61844,6 +61942,12 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     startAddFavorite: function startAddFavorite(movie) {
       return dispatch((0, _favorites.startAddFavorite)(movie));
+    },
+    startRemoveFromSearch: function startRemoveFromSearch(id) {
+      return dispatch((0, _moviedb.startRemoveFromSearch)(id));
+    },
+    startDeleteFavorite: function startDeleteFavorite(id) {
+      return dispatch((0, _favorites.startDeleteFavorite)(id));
     }
   };
 };
@@ -61882,7 +61986,7 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.getFavorites = undefined;
+exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = undefined;
 
 var _axios = __webpack_require__(370);
 
@@ -61903,6 +62007,22 @@ var getFavorites = exports.getFavorites = function getFavorites(favorites) {
   return {
     type: 'GET_FAVORITES',
     favorites: favorites
+  };
+};
+
+var startGetFavorites = exports.startGetFavorites = function startGetFavorites() {
+  return function (dispatch, getState) {
+    dispatch((0, _loading.isLoading)(true));
+    var token = getState().auth.token;
+    var config = { headers: { 'x-auth': token } };
+
+    return _axios2.default.get('/api/favorites', config).then(function (res) {
+      dispatch(getFavorites(res.data.movies));
+      dispatch((0, _loading.isLoading)(false));
+    }).catch(function (err) {
+      dispatch((0, _loading.isLoading)(false));
+      console.log(err);
+    });
   };
 };
 
@@ -61931,6 +62051,7 @@ var startAddFavorite = exports.startAddFavorite = function startAddFavorite(_ref
 
 var saveMovieToDatabase = exports.saveMovieToDatabase = function saveMovieToDatabase(m) {
   var movie = {
+    movieid: m.id,
     title: m.title || '',
     poster_path: m.poster_path || '',
     original_title: m.original_title || '',
@@ -61947,11 +62068,30 @@ var saveMovieToDatabase = exports.saveMovieToDatabase = function saveMovieToData
     var config = { headers: { 'x-auth': token } };
 
     _axios2.default.post('/api/favorites', movie, config).then(function (res) {
-      console.log(res);
       dispatch(addFavorite(res.data));
     }).catch(function (err) {
       console.log(err);
     });
+  };
+};
+
+//DELETE FAVORITE----------------------------------
+var deleteFavorite = exports.deleteFavorite = function deleteFavorite(id) {
+  return {
+    type: 'DELETE_FAVORITE',
+    id: id
+  };
+};
+
+var startDeleteFavorite = exports.startDeleteFavorite = function startDeleteFavorite(id) {
+
+  return function (dispatch, getState) {
+    var token = getState().auth.token;
+    var config = { headers: { 'x-auth': token } };
+
+    _axios2.default.delete('/api/favorites/' + id, config).then(function (res) {
+      dispatch(deleteFavorite(id));
+    }).catch(function (err) {});
   };
 };
 
@@ -62125,7 +62265,6 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
       if (this.props.loading) {
         return _react2.default.createElement(_LoadingPage2.default, null);
       }
-      console.log(this.props.movie);
 
       var movie = this.props.movie;
       var title = movie.title,
@@ -62219,6 +62358,166 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 };
 
 exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(MovieDetailsPage);
+
+/***/ }),
+/* 924 */,
+/* 925 */,
+/* 926 */,
+/* 927 */,
+/* 928 */,
+/* 929 */,
+/* 930 */,
+/* 931 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRedux = __webpack_require__(58);
+
+var _reactBootstrap = __webpack_require__(64);
+
+var _AppRouter = __webpack_require__(203);
+
+var _utils = __webpack_require__(378);
+
+var _favorites = __webpack_require__(922);
+
+var _Card = __webpack_require__(920);
+
+var _Card2 = _interopRequireDefault(_Card);
+
+var _LoadingPage = __webpack_require__(379);
+
+var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var FavoritesPage = function (_Component) {
+  _inherits(FavoritesPage, _Component);
+
+  function FavoritesPage() {
+    var _ref;
+
+    var _temp, _this, _ret;
+
+    _classCallCheck(this, FavoritesPage);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = FavoritesPage.__proto__ || Object.getPrototypeOf(FavoritesPage)).call.apply(_ref, [this].concat(args))), _this), _this.renderCards = function () {
+      var from = _this.props.route;
+
+      return _this.props.movies.map(function (movie) {
+        return _react2.default.createElement(_Card2.default, { key: movie.movieid, movie: movie, from: from });
+      });
+    }, _temp), _possibleConstructorReturn(_this, _ret);
+  }
+
+  _createClass(FavoritesPage, [{
+    key: 'componentDidMount',
+    value: function componentDidMount() {
+      this.props.startGetFavorites();
+    }
+  }, {
+    key: 'render',
+    value: function render() {
+      if (this.props.loading) {
+        return _react2.default.createElement(_LoadingPage2.default, null);
+      }
+
+      return _react2.default.createElement(
+        'span',
+        null,
+        _react2.default.createElement(
+          _reactBootstrap.Grid,
+          null,
+          _react2.default.createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2.default.createElement(_reactBootstrap.Col, { xs: 12, sm: 10, smOffset: 1 })
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2.default.createElement(
+              _reactBootstrap.Col,
+              { xs: 12 },
+              this.renderCards()
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return FavoritesPage;
+}(_react.Component);
+
+var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
+  var loading = _ref2.loading,
+      favorites = _ref2.favorites;
+  return {
+    loading: loading,
+    movies: favorites,
+    route: ownProps.match.path
+  };
+};
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    startGetFavorites: function startGetFavorites() {
+      return dispatch((0, _favorites.startGetFavorites)());
+    }
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(FavoritesPage);
+
+/***/ }),
+/* 932 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function (movieList, favoritesList) {
+  return movieList.filter(function (movie) {
+    return compareId(movie.id, favoritesList);
+  });
+};
+
+function compareId(id, favoritesList) {
+  var match = favoritesList.find(function (favorite) {
+    return favorite.movieid === id.toString();
+  });
+  if (match === undefined) {
+    return true;
+  }
+  return false;
+}
 
 /***/ })
 /******/ ]);

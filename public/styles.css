@@ -2765,7 +2765,7 @@ body {
   .card_panel_buttons_small {
     display: none; } }
 
-.icon__heart {
+.icon__heart, .icon__trash {
   margin-right: 5px; }
 
 .detail__panel__heading {

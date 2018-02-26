@@ -105,8 +105,7 @@ export class MovieDetailsPage extends Component {
     if(this.props.loading) {
       return <LoadingPage />
     }
-    console.log(this.props.movie);
-    
+
     const { movie } = this.props;
     const { title, poster_path, original_title, release_date, vote_average, genres, production_companies, overview, homepage } = movie;
 
