@@ -4,6 +4,16 @@ $fa-font-path: "~font-awesome/fonts";
 body {
   margin-top: 70px;
 }
+//LOADER 
+.loader {
+  position: fixed;
+  left: 50%;
+  top: 35%;
+  z-index: 1000;
+  height: 31px;
+  width: 31px;
+}
+
 //AUTH
 .auth__well {
   margin-top: 30px;
