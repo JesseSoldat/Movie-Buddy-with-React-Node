@@ -19,7 +19,7 @@ app.use(passport.session());
 //API------------------------------------------
 //USER-----------------------------
 app.post('/users', (req, res) => {
-  const body = pick(req.body, ['email', 'password']);
+  const body = pick(req.body, ['username', 'email', 'password']);
   const user = new User(body);
 
   user.save().then(() => {
@@ -66,6 +66,16 @@ app.get('/favorites', authenticate, (req, res) => {
   .then(movies => {
     res.send({movies});
   }, err => res.status(400).send(err))
+});
+
+app.get('/allusers/favorites', authenticate, (req, res) => {
+  const user = req.user._id;
+
+  Movie.find({}).then(movies => {
+    const othersMovies = movies.filter(movie => movie._creator.toHexString() !== user.toHexString());
+  
+    res.send(othersMovies);
+  }, err => res.status(400).send(err));
 });
 
 app.post('/favorites', authenticate, (req, res) => {

@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import { Form, Col, FormGroup, FormControl } from 'react-bootstrap';
-import {filterFavorites} from '../actions/favorites';
+import { Form, Col, FormGroup, FormControl, InputGroup, Button } from 'react-bootstrap';
+import {startGetOthersFavorites, filterFavorites} from '../actions/favorites';
+import {toggleModal} from '../actions/modal';
+
 
 class FilterBox extends Component {
   state = {
@@ -14,6 +16,11 @@ class FilterBox extends Component {
     this.props.filterFavorites(text);
   }
 
+  toggleModal = () => {
+    this.props.toggleModal(true);
+    this.props.startGetOthersFavorites();   
+  }
+
   render() {
     return (
       <Form horizontal className="searchbox">
@@ -22,9 +29,16 @@ class FilterBox extends Component {
             <h2 className="searchBox__label">Filter</h2>{'   '}   
           </Col>
           <Col sm={10}>
-            <FormControl type="text"
-              value={this.state.text}
-              onChange={this.onChange}/>
+            <InputGroup>
+              <FormControl type="text"
+                value={this.state.text}
+                onChange={this.onChange}/>
+               <InputGroup.Button>
+                <Button onClick={this.toggleModal}>
+                  Other Users
+                </Button>
+              </InputGroup.Button>
+            </InputGroup>
           </Col>
         </FormGroup>
       </Form>
@@ -33,7 +47,9 @@ class FilterBox extends Component {
 }
 
 const mapDispatchToProps = (dispatch) => ({
-  filterFavorites: (text) => dispatch(filterFavorites(text))
+  filterFavorites: (text) => dispatch(filterFavorites(text)),
+  toggleModal: (show) => dispatch(toggleModal(show)),
+  startGetOthersFavorites: () => dispatch(startGetOthersFavorites())
 });
 
 export default connect(undefined, mapDispatchToProps)(FilterBox);

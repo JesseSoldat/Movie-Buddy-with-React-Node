@@ -1,4 +1,4 @@
-export default (state = {filter: '', movies: []}, action) => {
+export default (state = {filter: '', movies: [], others: []}, action) => {
   let newState;
   let movies;
   
@@ -29,6 +29,13 @@ export default (state = {filter: '', movies: []}, action) => {
         movies
       };
       return newState;
+
+    case 'OTHERS_FAVORITES':
+      console.log('OTHERS_FAVORITES', action);
+      return {
+        ...state,
+        others: action.favorites
+      };
 
     case 'FILTER_FAVORITES':
       // console.log('FILTER', action.filter);

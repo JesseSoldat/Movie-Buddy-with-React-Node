@@ -6,6 +6,12 @@ const pick = require('lodash').pick;
 const {JWT_SECRET} = require('../config');
 
 const UserSchema = new mongoose.Schema({
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 1
+  },
   email: {
     type: String,
     required: true,

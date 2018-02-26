@@ -1,6 +1,6 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
-import {Well, Grid, Row, Col, Panel, Image, ButtonToolbar, ButtonGroup, Button, ListGroup, ListGroupItem} from 'react-bootstrap';
+import {Modal, Well, Grid, Row, Col, Panel, Image, ButtonToolbar, ButtonGroup, Button, ListGroup, ListGroupItem} from 'react-bootstrap';
 import {history} from '../router/AppRouter';
 import {renderIcon} from '../utils';
 import {startGetFavorites} from '../actions/favorites';
@@ -8,6 +8,7 @@ import Card from '../components/Card';
 import LoadingPage from './LoadingPage';
 import FilterBox from '../components/FilterBox';
 import filterFavorites from '../selectors/filterFavorites';
+import SearchUsersModal from '../components/SearchUsersModal';
 
 class FavoritesPage extends Component {
   componentDidMount() {
@@ -20,12 +21,14 @@ class FavoritesPage extends Component {
     return this.props.movies.map(movie => <Card key={movie.movieid} movie={movie} from={from} />).reverse();
   }
 
+
   render() {  
     if(this.props.loading) { return <LoadingPage />}
 
     return (
       <span>
       <Grid>
+        <SearchUsersModal/>
         <Row>
           <Col xs={12} sm={10} smOffset={1} >
             <FilterBox />
@@ -50,7 +53,7 @@ const mapStateToProps = ({loading, favorites}, ownProps) => ({
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  startGetFavorites: () => dispatch(startGetFavorites()),
-});
+  startGetFavorites: () => dispatch(startGetFavorites())
+}); 
 
 export default connect(mapStateToProps, mapDispatchToProps)(FavoritesPage);

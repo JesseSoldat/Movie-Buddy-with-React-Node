@@ -4,6 +4,7 @@ import authReducer from '../reducers/auth';
 import loadingReducer from '../reducers/loading';
 import moviedbReducer from '../reducers/moviedb';
 import favoritesReducer from '../reducers/favorites';
+import toggleModalReducer from '../reducers/modal';
 
 const composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || compose;
 
@@ -14,7 +15,8 @@ export default () => {
       auth: authReducer,
       route: () => ({}),
       moviedb: moviedbReducer,
-      favorites: favoritesReducer
+      favorites: favoritesReducer,
+      modal: toggleModalReducer,
     }),
     composeEnhancers(applyMiddleware(thunk))
   );

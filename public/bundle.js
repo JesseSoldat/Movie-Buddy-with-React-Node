@@ -7298,7 +7298,7 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = exports.filterFavorites = undefined;
+exports.startGetOthersFavorites = exports.getOthersFavorites = exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = exports.filterFavorites = undefined;
 
 var _axios = __webpack_require__(373);
 
@@ -7322,6 +7322,7 @@ var filterFavorites = exports.filterFavorites = function filterFavorites(filter)
   };
 };
 
+//GET_FAVORITES------------------------------------
 var getFavorites = exports.getFavorites = function getFavorites(favorites) {
   return {
     type: 'GET_FAVORITES',
@@ -7411,6 +7412,31 @@ var startDeleteFavorite = exports.startDeleteFavorite = function startDeleteFavo
     _axios2.default.delete('/api/favorites/' + id, config).then(function (res) {
       dispatch(deleteFavorite(id));
     }).catch(function (err) {});
+  };
+};
+
+//GET OTHERS FAVORITES----------------------------------
+var getOthersFavorites = exports.getOthersFavorites = function getOthersFavorites(favorites) {
+  return {
+    type: 'OTHERS_FAVORITES',
+    favorites: favorites
+  };
+};
+
+var startGetOthersFavorites = exports.startGetOthersFavorites = function startGetOthersFavorites() {
+  return function (dispatch, getState) {
+    dispatch((0, _loading.isLoading)(true));
+    var token = getState().auth.token;
+    var config = { headers: { 'x-auth': token } };
+
+    return _axios2.default.get('/api/allusers/favorites', config).then(function (res) {
+      console.log('startGetOthersFavorites', res.data);
+      dispatch(getOthersFavorites(res.data));
+      dispatch((0, _loading.isLoading)(false));
+    }).catch(function (err) {
+      dispatch((0, _loading.isLoading)(false));
+      console.log(err);
+    });
   };
 };
 
@@ -15098,8 +15124,10 @@ var register = exports.register = function register(_id, token) {
   };
 };
 
-var startRegister = exports.startRegister = function startRegister(email, password) {
-  var user = { email: email, password: password };
+var startRegister = exports.startRegister = function startRegister(username, email, password) {
+  var user = { username: username, email: email, password: password };
+  console.log(user);
+
   return function (dispatch) {
     _axios2.default.post('api/users', user).then(function (res) {
       var _id = res.data._id;
@@ -26073,33 +26101,47 @@ var AuthForm = function (_Component) {
     }
 
     return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = AuthForm.__proto__ || Object.getPrototypeOf(AuthForm)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+      username: '',
       email: '',
       password: '',
-      emailErrorMsg: '',
-      passwordErrorMsg: ''
+      usernameErrorMsg: null,
+      emailErrorMsg: null,
+      passwordErrorMsg: null
+    }, _this.onUsernameChange = function (e) {
+      var username = e.target.value;
+      _this.setState(function () {
+        return { username: username, usernameErrorMsg: null };
+      });
     }, _this.onEmailChange = function (e) {
       var email = e.target.value;
       _this.setState(function () {
-        return { email: email };
+        return { email: email, emailErrorMsg: null };
       });
     }, _this.onPasswordChange = function (e) {
       var password = e.target.value;
       _this.setState(function () {
-        return { password: password };
+        return { password: password, passwordErrorMsg: null };
       });
     }, _this.onSubmit = function (e) {
       e.preventDefault();
+
+      if (_this.state.password.length < 5) {
+        _this.setState(function () {
+          return { usernameErrorMsg: 'Please provide a username of at least 5 characters.' };
+        });
+      }
+
       if (!_this.checkEmail()) {
         _this.setState(function () {
           return { emailErrorMsg: 'Please provide a proper email.' };
         });
       }
-      if (_this.state.password.length < 5) {
+      if (_this.state.password.length <= 5) {
         _this.setState(function () {
           return { passwordErrorMsg: 'Please provide a password of at least 6 characters.' };
         });
       }
-      if (_this.state.emailError || _this.state.passwordError) {
+      if (_this.state.emailErrorMsg !== null || _this.state.passwordErrorMsg !== null) {
         return;
       }
 
@@ -26108,7 +26150,9 @@ var AuthForm = function (_Component) {
       }
 
       if (_this.props.formType === 'register') {
-        _this.props.startRegister(_this.state.email, _this.state.password);
+        if (_this.state.usernameErrorMsg === null) {
+          _this.props.startRegister(_this.state.username, _this.state.email, _this.state.password);
+        }
       }
     }, _this.checkEmail = function () {
       var regex = /^(([^<>()\[\]\\.,;:\s@"]+(\.[^<>()\[\]\\.,;:\s@"]+)*)|(".+"))@((\[[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}])|(([a-zA-Z\-0-9]+\.)+[a-zA-Z]{2,}))$/;
@@ -26121,6 +26165,10 @@ var AuthForm = function (_Component) {
         valid = null;
       }
       return valid;
+    }, _this.getUserNameValidationState = function () {
+      var length = _this.state.username.length;
+      if (length > 7) return 'success';else if (length > 5) return 'warning';else if (length > 0) return 'error';
+      return null;
     }, _this.getEmailValidationState = function () {
       var valid = _this.checkEmail();
       if (valid) return 'success';else if (valid === false) return 'error';else if (valid === null) return null;
@@ -26128,6 +26176,29 @@ var AuthForm = function (_Component) {
       var length = _this.state.password.length;
       if (length > 10) return 'success';else if (length > 5) return 'warning';else if (length > 0) return 'error';
       return null;
+    }, _this.renderUserName = function () {
+      if (_this.props.formType === 'register') {
+        return _react2.default.createElement(
+          _reactBootstrap.FormGroup,
+          { controlId: 'username',
+            validationState: _this.getUserNameValidationState() },
+          _react2.default.createElement(
+            _reactBootstrap.ControlLabel,
+            null,
+            'Username'
+          ),
+          _react2.default.createElement(_reactBootstrap.FormControl, { type: 'text',
+            placeholder: 'Username',
+            value: _this.state.username,
+            onChange: _this.onUsernameChange
+          }),
+          _react2.default.createElement(
+            'span',
+            { className: 'authform__error' },
+            _this.state.usernameErrorMsg
+          )
+        );
+      }
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -26137,6 +26208,7 @@ var AuthForm = function (_Component) {
       return _react2.default.createElement(
         'form',
         { onSubmit: this.onSubmit },
+        this.renderUserName(),
         _react2.default.createElement(
           _reactBootstrap.FormGroup,
           { controlId: 'email',
@@ -26200,8 +26272,8 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     startLogin: function startLogin(email, password) {
       return dispatch((0, _auth.startLogin)(email, password));
     },
-    startRegister: function startRegister(email, password) {
-      return dispatch((0, _auth.startRegister)(email, password));
+    startRegister: function startRegister(username, email, password) {
+      return dispatch((0, _auth.startRegister)(username, email, password));
     }
   };
 };
@@ -45653,6 +45725,10 @@ var _favorites = __webpack_require__(717);
 
 var _favorites2 = _interopRequireDefault(_favorites);
 
+var _modal = __webpack_require__(937);
+
+var _modal2 = _interopRequireDefault(_modal);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var composeEnhancers = window.__REDUX_DEVTOOLS_EXTENSION_COMPOSE__ || _redux.compose;
@@ -45665,7 +45741,8 @@ exports.default = function () {
       return {};
     },
     moviedb: _moviedb2.default,
-    favorites: _favorites2.default
+    favorites: _favorites2.default,
+    modal: _modal2.default
   }), composeEnhancers((0, _redux.applyMiddleware)(_reduxThunk2.default)));
   return store;
 };
@@ -45822,7 +45899,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 exports.default = function () {
-  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { filter: '', movies: [] };
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { filter: '', movies: [], others: [] };
   var action = arguments[1];
 
   var newState = void 0;
@@ -45852,6 +45929,12 @@ exports.default = function () {
         movies: movies
       });
       return newState;
+
+    case 'OTHERS_FAVORITES':
+      console.log('OTHERS_FAVORITES', action);
+      return _extends({}, state, {
+        others: action.favorites
+      });
 
     case 'FILTER_FAVORITES':
       // console.log('FILTER', action.filter);
@@ -62476,6 +62559,10 @@ var _filterFavorites = __webpack_require__(927);
 
 var _filterFavorites2 = _interopRequireDefault(_filterFavorites);
 
+var _SearchUsersModal = __webpack_require__(935);
+
+var _SearchUsersModal2 = _interopRequireDefault(_SearchUsersModal);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -62525,6 +62612,7 @@ var FavoritesPage = function (_Component) {
         _react2.default.createElement(
           _reactBootstrap.Grid,
           null,
+          _react2.default.createElement(_SearchUsersModal2.default, null),
           _react2.default.createElement(
             _reactBootstrap.Row,
             null,
@@ -62594,6 +62682,8 @@ var _reactBootstrap = __webpack_require__(50);
 
 var _favorites = __webpack_require__(120);
 
+var _modal = __webpack_require__(936);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -62624,6 +62714,9 @@ var FilterBox = function (_Component) {
         return { text: text };
       });
       _this.props.filterFavorites(text);
+    }, _this.toggleModal = function () {
+      _this.props.toggleModal(true);
+      _this.props.startGetOthersFavorites();
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -62649,9 +62742,22 @@ var FilterBox = function (_Component) {
           _react2.default.createElement(
             _reactBootstrap.Col,
             { sm: 10 },
-            _react2.default.createElement(_reactBootstrap.FormControl, { type: 'text',
-              value: this.state.text,
-              onChange: this.onChange })
+            _react2.default.createElement(
+              _reactBootstrap.InputGroup,
+              null,
+              _react2.default.createElement(_reactBootstrap.FormControl, { type: 'text',
+                value: this.state.text,
+                onChange: this.onChange }),
+              _react2.default.createElement(
+                _reactBootstrap.InputGroup.Button,
+                null,
+                _react2.default.createElement(
+                  _reactBootstrap.Button,
+                  { onClick: this.toggleModal },
+                  'Other Users'
+                )
+              )
+            )
           )
         )
       );
@@ -62665,6 +62771,12 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     filterFavorites: function filterFavorites(text) {
       return dispatch((0, _favorites.filterFavorites)(text));
+    },
+    toggleModal: function toggleModal(show) {
+      return dispatch((0, _modal.toggleModal)(show));
+    },
+    startGetOthersFavorites: function startGetOthersFavorites() {
+      return dispatch((0, _favorites.startGetOthersFavorites)());
     }
   };
 };
@@ -62692,6 +62804,163 @@ exports.default = function () {
     var title = favorite.title.toLowerCase();
     return title.indexOf(filterText) !== -1;
   });
+};
+
+/***/ }),
+/* 928 */,
+/* 929 */,
+/* 930 */,
+/* 931 */,
+/* 932 */,
+/* 933 */,
+/* 934 */,
+/* 935 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRedux = __webpack_require__(44);
+
+var _reactBootstrap = __webpack_require__(50);
+
+var _modal = __webpack_require__(936);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var SearchUsersModal = function (_Component) {
+  _inherits(SearchUsersModal, _Component);
+
+  function SearchUsersModal() {
+    var _ref;
+
+    var _temp, _this, _ret;
+
+    _classCallCheck(this, SearchUsersModal);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = SearchUsersModal.__proto__ || Object.getPrototypeOf(SearchUsersModal)).call.apply(_ref, [this].concat(args))), _this), _this.toggleModal = function (show) {
+      _this.props.toggleModal(show);
+    }, _temp), _possibleConstructorReturn(_this, _ret);
+  }
+
+  _createClass(SearchUsersModal, [{
+    key: 'render',
+    value: function render() {
+      var _this2 = this;
+
+      return _react2.default.createElement(
+        _reactBootstrap.Modal,
+        { show: this.props.modal,
+          onHide: function onHide() {
+            return _this2.toggleModal(false);
+          } },
+        _react2.default.createElement(
+          _reactBootstrap.Modal.Header,
+          { closeButton: true },
+          _react2.default.createElement(
+            _reactBootstrap.Modal.Title,
+            null,
+            'Search Other\'s Lists'
+          )
+        ),
+        _react2.default.createElement(_reactBootstrap.Modal.Body, null),
+        _react2.default.createElement(
+          _reactBootstrap.Modal.Footer,
+          null,
+          _react2.default.createElement(
+            _reactBootstrap.Button,
+            { onClick: function onClick() {
+                return _this2.toggleModal(false);
+              } },
+            'Close'
+          )
+        )
+      );
+    }
+  }]);
+
+  return SearchUsersModal;
+}(_react.Component);
+
+var mapStateToProps = function mapStateToProps(_ref2) {
+  var modal = _ref2.modal;
+  return {
+    modal: modal.show
+  };
+};
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    toggleModal: function toggleModal(toggle) {
+      return dispatch((0, _modal.toggleModal)(toggle));
+    }
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(SearchUsersModal);
+
+/***/ }),
+/* 936 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+var toggleModal = exports.toggleModal = function toggleModal(toggle) {
+  return {
+    type: 'TOGGLE_MODAL',
+    toggle: toggle
+  };
+};
+
+/***/ }),
+/* 937 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { show: false };
+  var action = arguments[1];
+
+  switch (action.type) {
+    case 'TOGGLE_MODAL':
+      // console.log('TOGGLE_MODAL', action);
+      return {
+        show: action.toggle
+      };
+
+    default:
+      return state;
+  }
 };
 
 /***/ })

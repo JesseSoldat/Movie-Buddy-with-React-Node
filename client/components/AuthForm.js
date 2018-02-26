@@ -5,42 +5,55 @@ import {startLogin, startRegister} from '../actions/auth';
 
 class AuthForm extends Component {
   state = {
+    username: '',
     email: '',
     password: '',
-    emailErrorMsg: '',
-    passwordErrorMsg: ''
+    usernameErrorMsg: null,
+    emailErrorMsg: null,
+    passwordErrorMsg: null
+  }
+
+  onUsernameChange = (e) => {
+    const username = e.target.value;
+    this.setState(() => ({username, usernameErrorMsg: null}));
   }
 
   onEmailChange = (e) => {
     const email = e.target.value;
-    this.setState(() => ({email}));
+    this.setState(() => ({email, emailErrorMsg: null}));
   }
 
   onPasswordChange = (e) => {
     const password = e.target.value;
-    this.setState(() => ({password}));
+    this.setState(() => ({password, passwordErrorMsg: null}));
   }
 
   onSubmit = (e) => {
     e.preventDefault();
+  
+    if(this.state.password.length < 5) {
+      this.setState(() => ({usernameErrorMsg: 'Please provide a username of at least 5 characters.'}));
+    }
+
     if(!this.checkEmail()) {
       this.setState(() => ({emailErrorMsg: 'Please provide a proper email.'}));
     }
-    if(this.state.password.length < 5) {
+    if(this.state.password.length <= 5) {
       this.setState(() => ({passwordErrorMsg: 'Please provide a password of at least 6 characters.'}));
     }
-    if(this.state.emailError || this.state.passwordError) {
+    if(this.state.emailErrorMsg !== null || this.state.passwordErrorMsg !== null ) {
       return;
-    }
+    } 
 
     if(this.props.formType === 'login') {
       this.props.startLogin(this.state.email, this.state.password);
     }
     
     if(this.props.formType === 'register') {
-      this.props.startRegister(this.state.email, this.state.password);
+      if(this.state.usernameErrorMsg === null) {
+        this.props.startRegister(this.state.username, this.state.email, this.state.password);
+      } 
     }
-
   }
 
   checkEmail = () => {
@@ -54,6 +67,14 @@ class AuthForm extends Component {
     } 
     else { valid = null;}
     return valid;
+  }
+
+  getUserNameValidationState = () => {
+    const length = this.state.username.length;
+    if (length > 7) return 'success'; 
+    else if (length > 5) return 'warning';
+    else if (length > 0) return 'error';     
+    return null;
   }
 
   getEmailValidationState = () => {
@@ -71,9 +92,28 @@ class AuthForm extends Component {
     return null;
   }
 
+  renderUserName = () => {
+    if(this.props.formType === 'register') {
+      return (
+        <FormGroup controlId="username"
+          validationState={this.getUserNameValidationState()}>
+          <ControlLabel>Username</ControlLabel>
+          <FormControl type="text"
+            placeholder="Username"
+            value={this.state.username}
+            onChange={this.onUsernameChange}
+          >
+          </FormControl>
+          <span className="authform__error">{this.state.usernameErrorMsg}</span>
+        </FormGroup>
+      );
+    }
+  }
+
   render() {
     return (
       <form onSubmit={this.onSubmit}>
+        {this.renderUserName()}
         <FormGroup controlId="email"
           validationState={this.getEmailValidationState()}>
           <ControlLabel>Email</ControlLabel>
@@ -108,7 +148,7 @@ const mapStateToProps = (state, ownProps) => ({
 
 const mapDispatchToProps = (dispatch) => ({
   startLogin: (email, password) => dispatch(startLogin(email, password)),
-  startRegister: (email, password) => dispatch(startRegister(email, password))
+  startRegister: (username, email, password) => dispatch(startRegister(username, email, password))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(AuthForm);

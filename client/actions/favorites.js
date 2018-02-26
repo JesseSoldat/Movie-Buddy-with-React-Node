@@ -10,6 +10,7 @@ export const filterFavorites = (filter) => ({
   filter
 });
 
+//GET_FAVORITES------------------------------------
 export const getFavorites = (favorites) => ({
   type: 'GET_FAVORITES',
   favorites
@@ -95,6 +96,30 @@ export const startDeleteFavorite = (id) => {
     })
     .catch(err => {
 
+    });
+  }
+}
+
+//GET OTHERS FAVORITES----------------------------------
+export const getOthersFavorites = (favorites) => ({
+  type: 'OTHERS_FAVORITES',
+  favorites
+});
+
+export const startGetOthersFavorites = () => {
+  return (dispatch, getState) => {
+    dispatch(isLoading(true));    
+    const token = getState().auth.token; 
+    const config = { headers: { 'x-auth': token } };
+
+    return axios.get('/api/allusers/favorites', config).then(res => {
+      console.log('startGetOthersFavorites', res.data);
+      dispatch(getOthersFavorites(res.data))   
+      dispatch(isLoading(false));     
+    })
+    .catch(err => {
+      dispatch(isLoading(false));  
+      console.log(err);
     });
   }
 }
