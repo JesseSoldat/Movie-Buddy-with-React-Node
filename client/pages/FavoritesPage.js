@@ -6,6 +6,8 @@ import {renderIcon} from '../utils';
 import {startGetFavorites} from '../actions/favorites';
 import Card from '../components/Card';
 import LoadingPage from './LoadingPage';
+import FilterBox from '../components/FilterBox';
+import filterFavorites from '../selectors/filterFavorites';
 
 class FavoritesPage extends Component {
   componentDidMount() {
@@ -15,20 +17,18 @@ class FavoritesPage extends Component {
   renderCards = () => {
     const from = this.props.route;
     
-    return this.props.movies.map(movie => <Card key={movie.movieid} movie={movie} from={from} />)
+    return this.props.movies.map(movie => <Card key={movie.movieid} movie={movie} from={from} />).reverse();
   }
 
   render() {  
-    if(this.props.loading) {
-      return <LoadingPage />
-    }
+    if(this.props.loading) { return <LoadingPage />}
 
     return (
       <span>
       <Grid>
         <Row>
           <Col xs={12} sm={10} smOffset={1} >
-          
+            <FilterBox />
           </Col>
         </Row>
 
@@ -45,12 +45,12 @@ class FavoritesPage extends Component {
 
 const mapStateToProps = ({loading, favorites}, ownProps) => ({
   loading,
-  movies: favorites,
+  movies: filterFavorites(favorites.filter, favorites.movies),
   route: ownProps.match.path
 })
 
 const mapDispatchToProps = (dispatch) => ({
-  startGetFavorites: () => dispatch(startGetFavorites())
+  startGetFavorites: () => dispatch(startGetFavorites()),
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(FavoritesPage);

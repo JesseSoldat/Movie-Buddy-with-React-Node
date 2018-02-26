@@ -5,9 +5,13 @@ import {history} from '../router/AppRouter';
 import {renderIcon} from '../utils';
 import {startGetDetails} from '../actions/moviedb';
 import LoadingPage from './LoadingPage';
+import {startAddFavorite, startDeleteFavorite} from '../actions/favorites';
 
 export class MovieDetailsPage extends Component {
   componentDidMount() {
+    if(!this.props.id) {
+      history.push('/search');
+    }
     this.props.startGetDetails(this.props.id);
   }
 
@@ -76,7 +80,8 @@ export class MovieDetailsPage extends Component {
             Back
           </Button>
           <Button className="detail__panel__button"
-            bsStyle="success">
+            bsStyle="success"
+            onClick={this.addToFavorites}>
             {renderIcon('heart')}                
             Favorite
           </Button>
@@ -91,20 +96,25 @@ export class MovieDetailsPage extends Component {
           bsStyle="primary">
           Back
         </Button>
-        <Button className="detail__panel__button"
-          bsStyle="danger">
-          {renderIcon('trash')}                
-          Delete
-        </Button>
       </ButtonGroup>
       );
     }
   }
 
+  addToFavorites = () => {
+    const {movie, startAddFavorite} = this.props;
+    startAddFavorite(movie);
+    history.push(`/favorites`);    
+  }
+
+  deleteFromFavorites = () => {
+    const {startDeleteFavorite, movie} = this.props;
+    startDeleteFavorite(movie._id);
+    history.push(`/favorites`);
+  }
+
   render() {
-    if(this.props.loading) {
-      return <LoadingPage />
-    }
+    if(this.props.loading) { return <LoadingPage />}
 
     const { movie } = this.props;
     const { title, poster_path, original_title, release_date, vote_average, genres, production_companies, overview, homepage } = movie;
@@ -154,7 +164,9 @@ const mapStateToProps = ({loading, moviedb}, ownProps) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  startGetDetails: (id) => dispatch(startGetDetails(id))
-})
+  startGetDetails: (id) => dispatch(startGetDetails(id)),
+  startAddFavorite: (movie) => dispatch(startAddFavorite(movie)),
+  startDeleteFavorite: (id) => dispatch(startDeleteFavorite(id))
+});
 
 export default connect(mapStateToProps, mapDispatchToProps)(MovieDetailsPage);

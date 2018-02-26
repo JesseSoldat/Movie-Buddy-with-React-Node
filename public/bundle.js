@@ -45457,27 +45457,48 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 exports.default = function () {
-  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : [];
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { filter: '', movies: [] };
   var action = arguments[1];
+
+  var newState = void 0;
+  var movies = void 0;
 
   switch (action.type) {
     case "GET_FAVORITES":
-      console.log('GET_FAVORITES', action.favorites);
-      return action.favorites;
+      // console.log('GET_FAVORITES', action.favorites);    
+      return _extends({}, state, {
+        movies: action.favorites
+      });
 
     case 'ADD_FAVORITE':
-      console.log('ADD_FAVORITE', action);
-      var newState = [].concat(_toConsumableArray(state), [action.favorite]);
+      // console.log('ADD_FAVORITE', action);
+      newState = _extends({}, state, {
+        movies: [].concat(_toConsumableArray(state.movies), [action.favorite])
+      });
       return newState;
 
     case 'DELETE_FAVORITE':
-      console.log('DELETE_FAVORITE', action);
-      // const newState = [...state];
-      // newState = newState.filter(movie => movie)
-      return state;
+      // console.log('DELETE_FAVORITE', action.id);
+      newState = _extends({}, state);
+      movies = newState.movies.filter(function (movie) {
+        return movie._id !== action.id;
+      });
+      newState = _extends({}, newState, {
+        movies: movies
+      });
+      return newState;
+
+    case 'FILTER_FAVORITES':
+      // console.log('FILTER', action.filter);
+      newState = _extends({}, state, {
+        filter: action.filter
+      });
+      return newState;
 
     default:
       return state;
@@ -61055,7 +61076,7 @@ var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
   var moviedb = _ref2.moviedb,
       favorites = _ref2.favorites;
   return {
-    movies: (0, _newMovies2.default)(moviedb.movies, favorites),
+    movies: (0, _newMovies2.default)(moviedb.movies, favorites.movies),
     route: ownProps.match.path
   };
 };
@@ -61986,7 +62007,7 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = undefined;
+exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = exports.filterFavorites = undefined;
 
 var _axios = __webpack_require__(370);
 
@@ -62002,6 +62023,13 @@ function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { de
 
 var apiKey = 'api_key=' + "c79f0a4b4f8b9c843e385c5cdb521ae1";
 var baseUrl = 'https://api.themoviedb.org/3/';
+
+var filterFavorites = exports.filterFavorites = function filterFavorites(filter) {
+  return {
+    type: 'FILTER_FAVORITES',
+    filter: filter
+  };
+};
 
 var getFavorites = exports.getFavorites = function getFavorites(favorites) {
   return {
@@ -62127,6 +62155,8 @@ var _LoadingPage = __webpack_require__(379);
 
 var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
 
+var _favorites = __webpack_require__(922);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -62226,7 +62256,8 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
           _react2.default.createElement(
             _reactBootstrap.Button,
             { className: 'detail__panel__button',
-              bsStyle: 'success' },
+              bsStyle: 'success',
+              onClick: _this.addToFavorites },
             (0, _utils.renderIcon)('heart'),
             'Favorite'
           )
@@ -62241,22 +62272,32 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
               onClick: _this.goBack,
               bsStyle: 'primary' },
             'Back'
-          ),
-          _react2.default.createElement(
-            _reactBootstrap.Button,
-            { className: 'detail__panel__button',
-              bsStyle: 'danger' },
-            (0, _utils.renderIcon)('trash'),
-            'Delete'
           )
         );
       }
+    }, _this.addToFavorites = function () {
+      var _this$props = _this.props,
+          movie = _this$props.movie,
+          startAddFavorite = _this$props.startAddFavorite;
+
+      startAddFavorite(movie);
+      _AppRouter.history.push('/favorites');
+    }, _this.deleteFromFavorites = function () {
+      var _this$props2 = _this.props,
+          startDeleteFavorite = _this$props2.startDeleteFavorite,
+          movie = _this$props2.movie;
+
+      startDeleteFavorite(movie._id);
+      _AppRouter.history.push('/favorites');
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
   _createClass(MovieDetailsPage, [{
     key: 'componentDidMount',
     value: function componentDidMount() {
+      if (!this.props.id) {
+        _AppRouter.history.push('/search');
+      }
       this.props.startGetDetails(this.props.id);
     }
   }, {
@@ -62353,6 +62394,12 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     startGetDetails: function startGetDetails(id) {
       return dispatch((0, _moviedb.startGetDetails)(id));
+    },
+    startAddFavorite: function startAddFavorite(movie) {
+      return dispatch((0, _favorites.startAddFavorite)(movie));
+    },
+    startDeleteFavorite: function startDeleteFavorite(id) {
+      return dispatch((0, _favorites.startDeleteFavorite)(id));
     }
   };
 };
@@ -62401,6 +62448,14 @@ var _LoadingPage = __webpack_require__(379);
 
 var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
 
+var _FilterBox = __webpack_require__(934);
+
+var _FilterBox2 = _interopRequireDefault(_FilterBox);
+
+var _filterFavorites = __webpack_require__(933);
+
+var _filterFavorites2 = _interopRequireDefault(_filterFavorites);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
@@ -62428,7 +62483,7 @@ var FavoritesPage = function (_Component) {
 
       return _this.props.movies.map(function (movie) {
         return _react2.default.createElement(_Card2.default, { key: movie.movieid, movie: movie, from: from });
-      });
+      }).reverse();
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -62453,7 +62508,11 @@ var FavoritesPage = function (_Component) {
           _react2.default.createElement(
             _reactBootstrap.Row,
             null,
-            _react2.default.createElement(_reactBootstrap.Col, { xs: 12, sm: 10, smOffset: 1 })
+            _react2.default.createElement(
+              _reactBootstrap.Col,
+              { xs: 12, sm: 10, smOffset: 1 },
+              _react2.default.createElement(_FilterBox2.default, null)
+            )
           ),
           _react2.default.createElement(
             _reactBootstrap.Row,
@@ -62477,7 +62536,7 @@ var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
       favorites = _ref2.favorites;
   return {
     loading: loading,
-    movies: favorites,
+    movies: (0, _filterFavorites2.default)(favorites.filter, favorites.movies),
     route: ownProps.match.path
   };
 };
@@ -62511,13 +62570,136 @@ exports.default = function (movieList, favoritesList) {
 
 function compareId(id, favoritesList) {
   var match = favoritesList.find(function (favorite) {
-    return favorite.movieid === id.toString();
+    return favorite.movieid === id;
   });
   if (match === undefined) {
     return true;
   }
   return false;
 }
+
+/***/ }),
+/* 933 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+exports.default = function () {
+  var filterText = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : '';
+  var favoritesList = arguments[1];
+
+  filterText = filterText.toLowerCase();
+
+  return favoritesList.filter(function (favorite) {
+    var title = favorite.title.toLowerCase();
+    return title.indexOf(filterText) !== -1;
+  });
+};
+
+/***/ }),
+/* 934 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRedux = __webpack_require__(58);
+
+var _reactBootstrap = __webpack_require__(64);
+
+var _favorites = __webpack_require__(922);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var FilterBox = function (_Component) {
+  _inherits(FilterBox, _Component);
+
+  function FilterBox() {
+    var _ref;
+
+    var _temp, _this, _ret;
+
+    _classCallCheck(this, FilterBox);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = FilterBox.__proto__ || Object.getPrototypeOf(FilterBox)).call.apply(_ref, [this].concat(args))), _this), _this.state = {
+      text: ''
+    }, _this.onChange = function (e) {
+      var text = e.target.value;
+      _this.setState(function () {
+        return { text: text };
+      });
+      _this.props.filterFavorites(text);
+    }, _temp), _possibleConstructorReturn(_this, _ret);
+  }
+
+  _createClass(FilterBox, [{
+    key: 'render',
+    value: function render() {
+      return _react2.default.createElement(
+        _reactBootstrap.Form,
+        { horizontal: true, className: 'searchbox' },
+        _react2.default.createElement(
+          _reactBootstrap.FormGroup,
+          { controlId: 'searchText', validationState: null },
+          _react2.default.createElement(
+            _reactBootstrap.Col,
+            { sm: 2 },
+            _react2.default.createElement(
+              'h2',
+              { className: 'searchBox__label' },
+              'Filter'
+            ),
+            '   '
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Col,
+            { sm: 10 },
+            _react2.default.createElement(_reactBootstrap.FormControl, { type: 'text',
+              value: this.state.text,
+              onChange: this.onChange })
+          )
+        )
+      );
+    }
+  }]);
+
+  return FilterBox;
+}(_react.Component);
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    filterFavorites: function filterFavorites(text) {
+      return dispatch((0, _favorites.filterFavorites)(text));
+    }
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(undefined, mapDispatchToProps)(FilterBox);
 
 /***/ })
 /******/ ]);

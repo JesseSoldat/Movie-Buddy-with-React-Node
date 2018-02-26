@@ -3,7 +3,7 @@ export default (movieList, favoritesList) => {
 }
 
 function compareId(id, favoritesList) {
-  const match = favoritesList.find(favorite => (favorite.movieid === id.toString()));
+  const match = favoritesList.find(favorite => (favorite.movieid === id));
   if(match === undefined) { return true; }
   return false;
 }

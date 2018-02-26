@@ -5,6 +5,10 @@ import {isLoading} from './loading';
 const apiKey = `api_key=${process.env.MOVIE_API}`;
 const baseUrl = 'https://api.themoviedb.org/3/';
 
+export const filterFavorites = (filter) => ({
+  type: 'FILTER_FAVORITES',
+  filter
+});
 
 export const getFavorites = (favorites) => ({
   type: 'GET_FAVORITES',

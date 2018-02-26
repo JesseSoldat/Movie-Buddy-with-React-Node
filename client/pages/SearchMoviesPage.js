@@ -33,7 +33,7 @@ class SearchMoviesPage extends Component {
 }
 
 const mapStateToProps = ({moviedb, favorites}, ownProps) => ({
-  movies: newMoviesSelector(moviedb.movies, favorites),
+  movies: newMoviesSelector(moviedb.movies, favorites.movies),
   route: ownProps.match.path
 });
 

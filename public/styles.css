@@ -2734,10 +2734,10 @@ body {
   display: block; }
 
 .searchbox {
-  margin-top: 10px; }
+  margin: 15px 0; }
 
 .searchBox__label {
-  padding-top: 10px;
+  padding-top: 5px;
   margin: 0; }
 
 .card {
