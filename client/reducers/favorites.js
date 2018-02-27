@@ -31,7 +31,7 @@ export default (state = {filter: '', movies: [], others: []}, action) => {
       return newState;
 
     case 'OTHERS_FAVORITES':
-      console.log('OTHERS_FAVORITES', action);
+      // console.log('OTHERS_FAVORITES', action);
       return {
         ...state,
         others: action.favorites

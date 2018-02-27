@@ -113,7 +113,7 @@ export const startGetOthersFavorites = () => {
     const config = { headers: { 'x-auth': token } };
 
     return axios.get('/api/allusers/favorites', config).then(res => {
-      console.log('startGetOthersFavorites', res.data);
+      // console.log('startGetOthersFavorites', res.data);
       dispatch(getOthersFavorites(res.data))   
       dispatch(isLoading(false));     
     })

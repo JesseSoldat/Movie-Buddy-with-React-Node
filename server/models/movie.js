@@ -43,6 +43,12 @@ const Movie = mongoose.model('Movie', {
   _creator: {
     type: mongoose.Schema.Types.ObjectId,
     required: true
+  },
+  username: {
+    type: String,
+    required: true,
+    trim: true,
+    minlength: 1
   }
 });
 

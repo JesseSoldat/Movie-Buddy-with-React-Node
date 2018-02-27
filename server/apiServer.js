@@ -81,7 +81,8 @@ app.get('/allusers/favorites', authenticate, (req, res) => {
 app.post('/favorites', authenticate, (req, res) => {
   const movie = new Movie({
     ...req.body, 
-    _creator: req.user._id
+    _creator: req.user._id,
+    username: req.user.username
   });
   movie.save().then(doc => {
     res.send(doc)

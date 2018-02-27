@@ -51,8 +51,7 @@ export const register = (_id, token) => ({
 
 export const startRegister = (username, email, password) => {
   const user = {username, email, password};
-  console.log(user);
-  
+
   return (dispatch) => {
     axios.post('api/users', user).then((res) => {
       const _id = res.data._id;
