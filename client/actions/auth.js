@@ -33,7 +33,9 @@ export const startLogout = (token) => {
       url: 'users/token',
       headers: {'x-auth': token}
     }).then(res => {
-      localStorage.setItem('user', null);      
+      localStorage.setItem('user', null);    
+      localStorage.setItem('movies', null);
+      localStorage.setItem('movie', null);          
       dispatch(logout());
     })
     .catch(err => {

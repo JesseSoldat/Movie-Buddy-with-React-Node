@@ -15129,6 +15129,8 @@ var startLogout = exports.startLogout = function startLogout(token) {
       headers: { 'x-auth': token }
     }).then(function (res) {
       localStorage.setItem('user', null);
+      localStorage.setItem('movies', null);
+      localStorage.setItem('movie', null);
       dispatch(logout());
     }).catch(function (err) {
       console.log('startLogout', err);
