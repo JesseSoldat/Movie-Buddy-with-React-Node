@@ -40,8 +40,9 @@ export const addFavorite = (favorite) => ({
   favorite
 });
 
-export const startAddFavorite = ({id}) => {
+export const startAddFavorite = (movie) => {
   return (dispatch) => {
+    const id = movie.id || movie.movieid;
     const url = `${baseUrl}movie/${id}?${apiKey}`; 
 
     jsonp(url, null, (err, res) => {
@@ -123,4 +124,15 @@ export const startGetOthersFavorites = () => {
     });
   }
 }
+//GET OTHERS FAVORITE----------------------------------
+export const loadMatchedUser = (matchedUser) => ({
+  type: 'MATCHED_USER',
+  matchedUser
+});
+
+//REMOVE FROM OTHERS FAVORITES----------------------------------
+export const removeMovieFromOthersMatches = (matchedUser) => ({
+  type: 'REMOVE_FROM_OTHERS_MATCHES',
+  matchedUser
+});
 

@@ -17,10 +17,16 @@ export class MovieDetailsPage extends Component {
 
   goBack = () => {
     const str = this.props.parent;
+    
     if(str.indexOf('search') !== -1) {
       history.push(`/search`);   
-    } else {
+    } else if (str.indexOf('favorites') !== -1) {
       history.push(`/favorites`);
+    } else if (str.indexOf('others_matches') !== -1) {
+      const uid = this.props.matchedUser.id;
+      history.push(`/others_matches/${uid}`);
+    } else {
+      history.push('/dashboard');
     }
   }
 
@@ -156,11 +162,12 @@ export class MovieDetailsPage extends Component {
   }
 }
 
-const mapStateToProps = ({loading, moviedb}, ownProps) => ({
+const mapStateToProps = ({loading, moviedb, favorites}, ownProps) => ({
   loading,
   id: ownProps.match.params.id,
   parent: ownProps.match.url,
   movie: moviedb.movie,
+  matchedUser: favorites.matchedUser
 });
 
 const mapDispatchToProps = (dispatch) => ({

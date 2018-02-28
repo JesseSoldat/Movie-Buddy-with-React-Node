@@ -1,4 +1,4 @@
-export default (state = {filter: '', movies: [], others: []}, action) => {
+export default (state = {filter: '', movies: [], others: [], matchedUser: {}}, action) => {
   let newState;
   let movies;
   
@@ -36,6 +36,21 @@ export default (state = {filter: '', movies: [], others: []}, action) => {
         ...state,
         others: action.favorites
       };
+
+    case 'MATCHED_USER':
+      // console.log('MATCHED_USER', action.matchedUser);   
+      return {
+        ...state,
+        matchedUser: action.matchedUser
+      }
+
+    case "REMOVE_FROM_OTHERS_MATCHES":
+      // console.log('REMOVE_FROM_OTHERS_MATCHES', action.matchedUser);
+      return {
+        ...state,
+        matchedUser: action.matchedUser
+      }
+      
 
     case 'FILTER_FAVORITES':
       // console.log('FILTER', action.filter);

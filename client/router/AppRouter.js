@@ -11,6 +11,7 @@ import DashboardPage from '../pages/DashboardPage';
 import SearchMoviesPage from '../pages/SearchMoviesPage';
 import MovieDetailsPage from '../pages/MovieDetailsPage';
 import FavoritesPage from '../pages/FavoritesPage';
+import OtherUsersFavoritesPage from '../pages/OtherUsersFavoritesPage';
 
 export const history = createHistory();
 
@@ -27,10 +28,15 @@ const AppRouter = () => (
         <PublicRoute path="/register" component={RegisterPage} />
         <PrivateRoute path="/logout" component={LogoutPage} />
         <PrivateRoute path="/dashboard" component={DashboardPage} />
+
         <PrivateRoute path="/search" component={SearchMoviesPage} exact />
         <PrivateRoute path="/favorites" component={FavoritesPage} exact />
+        <PrivateRoute path="/others_matches/:uid" component={OtherUsersFavoritesPage} exact />
+
         <PrivateRoute path="/search/details/:id" component={MovieDetailsPage} />
         <PrivateRoute path="/favorites/details/:id" component={MovieDetailsPage} />
+        <PrivateRoute path="/others_matches/:uid/details/:id" component={MovieDetailsPage} />
+       
         <Route component={NotFoundPage} />
       </Switch>
     </div>

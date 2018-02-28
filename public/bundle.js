@@ -7298,7 +7298,7 @@ module.exports = exports['default'];
 Object.defineProperty(exports, "__esModule", {
   value: true
 });
-exports.startGetOthersFavorites = exports.getOthersFavorites = exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = exports.filterFavorites = undefined;
+exports.removeMovieFromOthersMatches = exports.loadMatchedUser = exports.startGetOthersFavorites = exports.getOthersFavorites = exports.startDeleteFavorite = exports.deleteFavorite = exports.saveMovieToDatabase = exports.startAddFavorite = exports.addFavorite = exports.startGetFavorites = exports.getFavorites = exports.filterFavorites = undefined;
 
 var _axios = __webpack_require__(373);
 
@@ -7354,10 +7354,9 @@ var addFavorite = exports.addFavorite = function addFavorite(favorite) {
   };
 };
 
-var startAddFavorite = exports.startAddFavorite = function startAddFavorite(_ref) {
-  var id = _ref.id;
-
+var startAddFavorite = exports.startAddFavorite = function startAddFavorite(movie) {
   return function (dispatch) {
+    var id = movie.id || movie.movieid;
     var url = baseUrl + 'movie/' + id + '?' + apiKey;
 
     (0, _jsonp2.default)(url, null, function (err, res) {
@@ -7437,6 +7436,21 @@ var startGetOthersFavorites = exports.startGetOthersFavorites = function startGe
       dispatch((0, _loading.isLoading)(false));
       console.log(err);
     });
+  };
+};
+//GET OTHERS FAVORITE----------------------------------
+var loadMatchedUser = exports.loadMatchedUser = function loadMatchedUser(matchedUser) {
+  return {
+    type: 'MATCHED_USER',
+    matchedUser: matchedUser
+  };
+};
+
+//REMOVE FROM OTHERS FAVORITES----------------------------------
+var removeMovieFromOthersMatches = exports.removeMovieFromOthersMatches = function removeMovieFromOthersMatches(matchedUser) {
+  return {
+    type: 'REMOVE_FROM_OTHERS_MATCHES',
+    matchedUser: matchedUser
   };
 };
 
@@ -9077,6 +9091,10 @@ var _FavoritesPage = __webpack_require__(927);
 
 var _FavoritesPage2 = _interopRequireDefault(_FavoritesPage);
 
+var _OtherUsersFavoritesPage = __webpack_require__(939);
+
+var _OtherUsersFavoritesPage2 = _interopRequireDefault(_OtherUsersFavoritesPage);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var history = exports.history = (0, _createBrowserHistory2.default)();
@@ -9113,8 +9131,10 @@ var AppRouter = function AppRouter() {
         _react2.default.createElement(_PrivateRoute2.default, { path: '/dashboard', component: _DashboardPage2.default }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/search', component: _SearchMoviesPage2.default, exact: true }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/favorites', component: _FavoritesPage2.default, exact: true }),
+        _react2.default.createElement(_PrivateRoute2.default, { path: '/others_matches/:uid', component: _OtherUsersFavoritesPage2.default, exact: true }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/search/details/:id', component: _MovieDetailsPage2.default }),
         _react2.default.createElement(_PrivateRoute2.default, { path: '/favorites/details/:id', component: _MovieDetailsPage2.default }),
+        _react2.default.createElement(_PrivateRoute2.default, { path: '/others_matches/:uid/details/:id', component: _MovieDetailsPage2.default }),
         _react2.default.createElement(_reactRouterDom.Route, { component: NotFoundPage })
       )
     )
@@ -26685,6 +26705,8 @@ Object.defineProperty(exports, "__esModule", {
   value: true
 });
 
+var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
+
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
 var _react = __webpack_require__(0);
@@ -26736,16 +26758,37 @@ var Card = function (_Component) {
 
       var id = movie.id || movie.movieid;
 
+      if (parent.indexOf('others_matches') !== -1) {
+        _AppRouter.history.push({
+          pathname: parent + '/details/' + id,
+          state: { parent: parent }
+        });
+        return;
+      }
+
       _AppRouter.history.push({
         pathname: parent + '/details/' + id,
         state: { parent: parent }
       });
     }, _this.addToFavorites = function () {
       var _this$props2 = _this.props,
+          parent = _this$props2.parent,
           movie = _this$props2.movie,
+          matchedUser = _this$props2.matchedUser,
           startAddFavorite = _this$props2.startAddFavorite,
-          startRemoveFromSearch = _this$props2.startRemoveFromSearch;
+          startRemoveFromSearch = _this$props2.startRemoveFromSearch,
+          removeMovieFromOthersMatches = _this$props2.removeMovieFromOthersMatches;
 
+
+      if (parent.indexOf('others_matches') !== -1) {
+        var newMovieList = matchedUser.movies.filter(function (m) {
+          return m.movieid !== movie.movieid;
+        });
+        var newMatchedUser = _extends({}, matchedUser, { movies: newMovieList });
+        removeMovieFromOthersMatches(newMatchedUser);
+        startAddFavorite(movie);
+        return;
+      }
       startAddFavorite(movie);
       startRemoveFromSearch(movie.id);
     }, _this.deleteFromFavorites = function () {
@@ -26763,7 +26806,7 @@ var Card = function (_Component) {
     }, _this.renderButtonGroup = function () {
       var parent = _this.props.parent;
 
-      if (parent.indexOf('search') !== -1) {
+      if (parent.indexOf('search') !== -1 || parent.indexOf('others_matches') !== -1) {
         return _react2.default.createElement(
           _reactBootstrap.ButtonToolbar,
           null,
@@ -26883,12 +26926,14 @@ var Card = function (_Component) {
   return Card;
 }(_react.Component);
 
-var mapStateToProps = function mapStateToProps(state, _ref2) {
-  var movie = _ref2.movie,
-      from = _ref2.from;
+var mapStateToProps = function mapStateToProps(_ref2, _ref3) {
+  var favorites = _ref2.favorites;
+  var movie = _ref3.movie,
+      from = _ref3.from;
   return {
     movie: movie,
-    parent: from
+    parent: from,
+    matchedUser: favorites.matchedUser
   };
 };
 
@@ -26902,6 +26947,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
     },
     startDeleteFavorite: function startDeleteFavorite(id) {
       return dispatch((0, _favorites.startDeleteFavorite)(id));
+    },
+    removeMovieFromOthersMatches: function removeMovieFromOthersMatches(newMatchedUser) {
+      return dispatch((0, _favorites.removeMovieFromOthersMatches)(newMatchedUser));
     }
   };
 };
@@ -45915,7 +45963,7 @@ var _extends = Object.assign || function (target) { for (var i = 1; i < argument
 function _toConsumableArray(arr) { if (Array.isArray(arr)) { for (var i = 0, arr2 = Array(arr.length); i < arr.length; i++) { arr2[i] = arr[i]; } return arr2; } else { return Array.from(arr); } }
 
 exports.default = function () {
-  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { filter: '', movies: [], others: [] };
+  var state = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : { filter: '', movies: [], others: [], matchedUser: {} };
   var action = arguments[1];
 
   var newState = void 0;
@@ -45950,6 +45998,18 @@ exports.default = function () {
       // console.log('OTHERS_FAVORITES', action);
       return _extends({}, state, {
         others: action.favorites
+      });
+
+    case 'MATCHED_USER':
+      // console.log('MATCHED_USER', action.matchedUser);   
+      return _extends({}, state, {
+        matchedUser: action.matchedUser
+      });
+
+    case "REMOVE_FROM_OTHERS_MATCHES":
+      // console.log('REMOVE_FROM_OTHERS_MATCHES', action.matchedUser);
+      return _extends({}, state, {
+        matchedUser: action.matchedUser
       });
 
     case 'FILTER_FAVORITES':
@@ -62334,10 +62394,16 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
 
     return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = MovieDetailsPage.__proto__ || Object.getPrototypeOf(MovieDetailsPage)).call.apply(_ref, [this].concat(args))), _this), _this.goBack = function () {
       var str = _this.props.parent;
+
       if (str.indexOf('search') !== -1) {
         _AppRouter.history.push('/search');
-      } else {
+      } else if (str.indexOf('favorites') !== -1) {
         _AppRouter.history.push('/favorites');
+      } else if (str.indexOf('others_matches') !== -1) {
+        var uid = _this.props.matchedUser.id;
+        _AppRouter.history.push('/others_matches/' + uid);
+      } else {
+        _AppRouter.history.push('/dashboard');
       }
     }, _this.renderPoster = function (poster_path) {
       return poster_path ? _react2.default.createElement(_reactBootstrap.Image, { className: 'detail__image',
@@ -62534,12 +62600,14 @@ var MovieDetailsPage = exports.MovieDetailsPage = function (_Component) {
 
 var mapStateToProps = function mapStateToProps(_ref2, ownProps) {
   var loading = _ref2.loading,
-      moviedb = _ref2.moviedb;
+      moviedb = _ref2.moviedb,
+      favorites = _ref2.favorites;
   return {
     loading: loading,
     id: ownProps.match.params.id,
     parent: ownProps.match.url,
-    movie: moviedb.movie
+    movie: moviedb.movie,
+    matchedUser: favorites.matchedUser
   };
 };
 
@@ -62868,11 +62936,15 @@ var _react2 = _interopRequireDefault(_react);
 
 var _reactRedux = __webpack_require__(39);
 
+var _reactRouterDom = __webpack_require__(145);
+
 var _reactBootstrap = __webpack_require__(46);
 
 var _modal = __webpack_require__(382);
 
-var _othersFavorites = __webpack_require__(938);
+var _favorites = __webpack_require__(120);
+
+var _othersFavorites = __webpack_require__(931);
 
 var _othersFavorites2 = _interopRequireDefault(_othersFavorites);
 
@@ -62910,9 +62982,10 @@ var SearchUsersModal = function (_Component) {
       }
 
       for (var key in othersFavorites) {
+        var movies = othersFavorites[key].movies;
         var id = othersFavorites[key].id;
         var user = othersFavorites[key].username;
-        var amount = othersFavorites[key].movies.length;
+        var amount = movies.length;
         amount = amount + (amount === 1 ? ' other movie.' : ' other movies.');
         var matched = othersFavorites[key].matched;
 
@@ -62923,12 +62996,12 @@ var SearchUsersModal = function (_Component) {
           user: user,
           matched: matched,
           matchedStr: matchedStr,
-          amount: amount
+          amount: amount,
+          movies: movies
         });
       }
 
       var sorted = _this.sortListGroupsArray(listGroupsArraySorted);
-      console.log(sorted);
 
       return sorted.map(function (obj) {
         return _react2.default.createElement(
@@ -62937,10 +63010,16 @@ var SearchUsersModal = function (_Component) {
           _react2.default.createElement(
             _reactBootstrap.ListGroupItem,
             { header: obj.user + ' has matched ' + obj.matchedStr },
-            'Check out ',
-            obj.user,
-            '\'s ',
-            obj.amount
+            _react2.default.createElement(
+              _reactRouterDom.Link,
+              { onClick: function onClick() {
+                  return _this.loadOtherUserFavorites(obj);
+                }, to: '/others_matches/' + obj.id },
+              'Check out ',
+              obj.user,
+              '\'s      ',
+              obj.amount
+            )
           )
         );
       });
@@ -62950,6 +63029,9 @@ var SearchUsersModal = function (_Component) {
       if (a.matched < b.matched) return -1;
       if (a.matched > b.matched) return 1;
       return 0;
+    }, _this.loadOtherUserFavorites = function (matchedUser) {
+      _this.props.loadMatchedUser(matchedUser);
+      _this.props.toggleModal(false);
     }, _temp), _possibleConstructorReturn(_this, _ret);
   }
 
@@ -63010,6 +63092,9 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
   return {
     toggleModal: function toggleModal(toggle) {
       return dispatch((0, _modal.toggleModal)(toggle));
+    },
+    loadMatchedUser: function loadMatchedUser(matchedUser) {
+      return dispatch((0, _favorites.loadMatchedUser)(matchedUser));
     }
   };
 };
@@ -63017,14 +63102,7 @@ var mapDispatchToProps = function mapDispatchToProps(dispatch) {
 exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(SearchUsersModal);
 
 /***/ }),
-/* 931 */,
-/* 932 */,
-/* 933 */,
-/* 934 */,
-/* 935 */,
-/* 936 */,
-/* 937 */,
-/* 938 */
+/* 931 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -63087,6 +63165,151 @@ function filterDuplicates(moviesByUser, myFavorites) {
     return moviesByUser;
   }
 }
+
+/***/ }),
+/* 932 */,
+/* 933 */,
+/* 934 */,
+/* 935 */,
+/* 936 */,
+/* 937 */,
+/* 938 */,
+/* 939 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+  value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _react = __webpack_require__(0);
+
+var _react2 = _interopRequireDefault(_react);
+
+var _reactRedux = __webpack_require__(39);
+
+var _reactBootstrap = __webpack_require__(46);
+
+var _Card = __webpack_require__(381);
+
+var _Card2 = _interopRequireDefault(_Card);
+
+var _LoadingPage = __webpack_require__(242);
+
+var _LoadingPage2 = _interopRequireDefault(_LoadingPage);
+
+var _FilterBox = __webpack_require__(928);
+
+var _FilterBox2 = _interopRequireDefault(_FilterBox);
+
+var _favorites = __webpack_require__(120);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+function _possibleConstructorReturn(self, call) { if (!self) { throw new ReferenceError("this hasn't been initialised - super() hasn't been called"); } return call && (typeof call === "object" || typeof call === "function") ? call : self; }
+
+function _inherits(subClass, superClass) { if (typeof superClass !== "function" && superClass !== null) { throw new TypeError("Super expression must either be null or a function, not " + typeof superClass); } subClass.prototype = Object.create(superClass && superClass.prototype, { constructor: { value: subClass, enumerable: false, writable: true, configurable: true } }); if (superClass) Object.setPrototypeOf ? Object.setPrototypeOf(subClass, superClass) : subClass.__proto__ = superClass; }
+
+var OtherUsersFavoritesPage = function (_Component) {
+  _inherits(OtherUsersFavoritesPage, _Component);
+
+  function OtherUsersFavoritesPage() {
+    var _ref;
+
+    var _temp, _this, _ret;
+
+    _classCallCheck(this, OtherUsersFavoritesPage);
+
+    for (var _len = arguments.length, args = Array(_len), _key = 0; _key < _len; _key++) {
+      args[_key] = arguments[_key];
+    }
+
+    return _ret = (_temp = (_this = _possibleConstructorReturn(this, (_ref = OtherUsersFavoritesPage.__proto__ || Object.getPrototypeOf(OtherUsersFavoritesPage)).call.apply(_ref, [this].concat(args))), _this), _this.renderCards = function () {
+      var matchedUser = _this.props.matchedUser;
+
+
+      if (matchedUser && matchedUser.movies) {
+        return matchedUser.movies.map(function (movie) {
+          return _react2.default.createElement(_Card2.default, { key: movie.movieid,
+            movie: movie,
+            matchedUser: matchedUser,
+            from: '/others_matches/' + matchedUser.id
+          });
+        }).reverse();
+      }
+      return null;
+    }, _temp), _possibleConstructorReturn(_this, _ret);
+  }
+
+  _createClass(OtherUsersFavoritesPage, [{
+    key: 'render',
+    value: function render() {
+      if (this.props.loading) {
+        return _react2.default.createElement(_LoadingPage2.default, null);
+      }
+      var user = this.props.matchedUser.user;
+
+
+      return _react2.default.createElement(
+        'span',
+        null,
+        _react2.default.createElement(
+          _reactBootstrap.Grid,
+          null,
+          _react2.default.createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2.default.createElement(
+              _reactBootstrap.Col,
+              { xs: 12, sm: 10, smOffset: 1, className: 'otherUsers__title' },
+              _react2.default.createElement(
+                'h3',
+                { className: 'text-center' },
+                'Here are ',
+                user,
+                '\'s movies that you have not favorited yet'
+              )
+            )
+          ),
+          _react2.default.createElement(
+            _reactBootstrap.Row,
+            null,
+            _react2.default.createElement(
+              _reactBootstrap.Col,
+              { xs: 12 },
+              this.renderCards()
+            )
+          )
+        )
+      );
+    }
+  }]);
+
+  return OtherUsersFavoritesPage;
+}(_react.Component);
+
+var mapStateToProps = function mapStateToProps(_ref2) {
+  var favorites = _ref2.favorites;
+  return {
+    matchedUser: favorites.matchedUser
+  };
+};
+
+var mapDispatchToProps = function mapDispatchToProps(dispatch) {
+  return {
+    getOtherUserFavorites: function getOtherUserFavorites() {
+      return dispatch((0, _favorites.getOtherUserFavorites)());
+    }
+  };
+};
+
+exports.default = (0, _reactRedux.connect)(mapStateToProps, mapDispatchToProps)(OtherUsersFavoritesPage);
 
 /***/ })
 /******/ ]);

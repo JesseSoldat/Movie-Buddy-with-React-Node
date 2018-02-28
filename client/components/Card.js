@@ -4,14 +4,22 @@ import {Col, Panel, Image, ButtonToolbar, ButtonGroup, Button} from 'react-boots
 import {history} from '../router/AppRouter';
 import FontAwesome from 'react-fontawesome';
 import {truncateText, renderIcon} from '../utils';
-import {startAddFavorite, startDeleteFavorite} from '../actions/favorites';
+import {startAddFavorite, startDeleteFavorite, removeMovieFromOthersMatches} from '../actions/favorites';
 import {startRemoveFromSearch} from '../actions/moviedb';
 
 class Card extends Component {
   onViewDetails = () => {
     const {parent, movie} = this.props;
     const id = movie.id || movie.movieid;
-   
+
+    if(parent.indexOf('others_matches') !== -1) {
+      history.push({
+        pathname: `${parent}/details/${id}`,
+        state: { parent }
+      });
+      return;
+    }
+    
     history.push({
       pathname: `${parent}/details/${id}`,
       state: { parent }
@@ -19,7 +27,15 @@ class Card extends Component {
   }
 
   addToFavorites = () => {
-    const {movie, startAddFavorite, startRemoveFromSearch} = this.props;
+    const {parent, movie, matchedUser, startAddFavorite, startRemoveFromSearch, removeMovieFromOthersMatches} = this.props;
+
+    if(parent.indexOf('others_matches') !== -1) {
+      const newMovieList = matchedUser.movies.filter(m => m.movieid !== movie.movieid);
+      const newMatchedUser = {...matchedUser, movies: newMovieList} 
+      removeMovieFromOthersMatches(newMatchedUser);
+      startAddFavorite(movie);
+      return;
+    }
     startAddFavorite(movie);
     startRemoveFromSearch(movie.id);
   }
@@ -43,7 +59,7 @@ class Card extends Component {
 
   renderButtonGroup = () => {
     const {parent} = this.props;
-    if(parent.indexOf('search') !== -1) {
+    if((parent.indexOf('search') !== -1) || (parent.indexOf('others_matches') !== -1) ) {
        return (
         <ButtonToolbar>
           <ButtonGroup className="card_panel_buttons_large">
@@ -122,15 +138,17 @@ class Card extends Component {
   }
 }
 
-const mapStateToProps = (state, {movie, from}) => ({
+const mapStateToProps = ({favorites}, {movie, from}) => ({
   movie,
-  parent: from
+  parent: from,
+  matchedUser: favorites.matchedUser
 });
 
 const mapDispatchToProps = (dispatch) => ({
   startAddFavorite: (movie) => dispatch(startAddFavorite(movie)),
   startRemoveFromSearch: (id) => dispatch(startRemoveFromSearch(id)),
-  startDeleteFavorite: (id) => dispatch(startDeleteFavorite(id))
+  startDeleteFavorite: (id) => dispatch(startDeleteFavorite(id)),
+  removeMovieFromOthersMatches: (newMatchedUser) => dispatch(removeMovieFromOthersMatches(newMatchedUser))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(Card);

@@ -1,7 +1,9 @@
 import React, {Component} from 'react';
 import {connect} from 'react-redux';
+import {Link} from 'react-router-dom';
 import {Modal, Button, ListGroup, ListGroupItem} from 'react-bootstrap';
 import {toggleModal} from '../actions/modal';
+import {loadMatchedUser} from '../actions/favorites';
 import othersFavorites from '../selectors/othersFavorites';
 
 class SearchUsersModal extends Component {
@@ -18,9 +20,10 @@ class SearchUsersModal extends Component {
     }
     
     for(let key in othersFavorites) {
+      const movies = othersFavorites[key].movies;
       const id = othersFavorites[key].id;
       const user = othersFavorites[key].username;
-      let amount = othersFavorites[key].movies.length;
+      let amount = movies.length;
       amount = amount + (amount === 1 ? ' other movie.' : ' other movies.');
       const matched = othersFavorites[key].matched;
 
@@ -31,17 +34,18 @@ class SearchUsersModal extends Component {
         user,
         matched,
         matchedStr,
-        amount
-      });
+        amount,
+        movies
+      }); 
     }
     
     let sorted = this.sortListGroupsArray(listGroupsArraySorted);
-    console.log(sorted);
 
     return sorted.map(obj => (
       <ListGroup key={obj.id}>
         <ListGroupItem header={`${obj.user} has matched ${obj.matchedStr}`}>
-          Check out {obj.user}'s {obj.amount}
+          <Link onClick={() => this.loadOtherUserFavorites(obj)} to={`/others_matches/${obj.id}`}>Check out {obj.user}'s      {obj.amount}
+          </Link>
         </ListGroupItem>
       </ListGroup>
     ));
@@ -57,6 +61,11 @@ class SearchUsersModal extends Component {
     if (a.matched > b.matched)
       return 1;
     return 0;
+  }
+
+  loadOtherUserFavorites = (matchedUser) => {
+    this.props.loadMatchedUser(matchedUser);  
+    this.props.toggleModal(false);
   }
 
   render() {
@@ -84,7 +93,8 @@ const mapStateToProps = ({modal, favorites}) => ({
 });
 
 const mapDispatchToProps = (dispatch) => ({
-  toggleModal: (toggle) => dispatch(toggleModal(toggle))
+  toggleModal: (toggle) => dispatch(toggleModal(toggle)),
+  loadMatchedUser: (matchedUser) => dispatch(loadMatchedUser(matchedUser))
 });
 
 export default connect(mapStateToProps, mapDispatchToProps)(SearchUsersModal);
